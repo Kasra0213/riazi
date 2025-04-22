@@ -80,46 +80,51 @@
         container.appendChild(input);
       }
     }
-
-    function parsePoly(str) {
-      const terms = str.replace(/\s+/g, '').match(/[+-]?[^+-]+/g);
-      const poly = {};
-      terms?.forEach(term => {
-        let match = term.match(/^([+-]?\d*)([a-zA-Z]?)(\^(\d+))?$/);
+function parsePoly(str) {
+    const terms = str.replace(/\s+/g, '').match(/[+-]?[^+-]+/g);
+    const poly = {};
+    terms?.forEach(term => {
+        let match = term.match(/^([+-]?\d*(?:\/\d+)?)([a-zA-Z\*]*)(\^(\d+))?$/);
         if (match) {
-          let [, coeff, variable, , power] = match;
-          coeff = coeff === '' || coeff === '+' ? 1 : coeff === '-' ? -1 : parseFloat(coeff);
-          const key = variable ? variable + (power ? '^' + power : '') : '1';
-          poly[key] = (poly[key] || 0) + coeff;
+            let [, coeff, variables, , power] = match;
+            if (coeff.includes('/')) {
+                let parts = coeff.split('/');
+                coeff = parseFloat(parts[0]) / parseFloat(parts[1]);
+            } else {
+                coeff = coeff === '' || coeff === '+' ? 1 : coeff === '-' ? -1 : parseFloat(coeff);
+            }
+            const key = variables ? variables + (power ? '^' + power : '') : '1';
+            poly[key] = (poly[key] || 0) + coeff;
         }
-      });
-      return poly;
-    }
+    });
+    return poly;
+}
 
-    function multiplyPolys(p1, p2) {
-      const result = {};
-      for (let key1 in p1) {
+function multiplyPolys(p1, p2) {
+    const result = {};
+    for (let key1 in p1) {
         for (let key2 in p2) {
-          const coeff = p1[key1] * p2[key2];
-          const vars1 = key1 === '1' ? [] : key1.split('*');
-          const vars2 = key2 === '1' ? [] : key2.split('*');
-          const combinedVars = [...vars1, ...vars2];
-          const varMap = {};
-          for (let v of combinedVars) {
-            let [name, pow] = v.split('^');
-            pow = parseInt(pow || 1);
-            varMap[name] = (varMap[name] || 0) + pow;
-          }
-          const sortedVars = Object.entries(varMap)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, pow]) => pow === 1 ? name : `${name}^${pow}`)
-            .join('*');
-          const key = sortedVars || '1';
-          result[key] = (result[key] || 0) + coeff;
+            const coeff = p1[key1] * p2[key2];
+            const vars1 = key1 === '1' ? [] : key1.split('*');
+            const vars2 = key2 === '1' ? [] : key2.split('*');
+            const combinedVars = [...vars1, ...vars2];
+            const varMap = {};
+            for (let v of combinedVars) {
+                let [name, pow] = v.split('^');
+                pow = parseInt(pow || 1);
+                varMap[name] = (varMap[name] || 0) + pow;
+            }
+            const sortedVars = Object.entries(varMap)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([name, pow]) => pow === 1 ? name : `${name}^${pow}`)
+                .join('*');
+            const key = sortedVars || '1';
+            result[key] = (result[key] || 0) + coeff;
         }
-      }
-      return result;
     }
+    return result;
+}
+
 
     function formatPoly(poly) {
       return Object.entries(poly)
