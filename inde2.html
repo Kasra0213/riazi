@@ -2,211 +2,232 @@
 <html lang="fa">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ماشین حساب علمی</title>
+  <title>ضرب چندجمله‌ای‌ها</title>
   <style>
     body {
-      font-family: Tahoma, sans-serif;
-      padding: 20px;
+      font-family: 'Vazirmatn', sans-serif;
+      background: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
       direction: rtl;
-      background-color: #f5f5f5;
-      text-align: center;
     }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-
-    input[type="text"] {
-      padding: 10px;
+    .neu {
+      background: #e0e0e0;
+      border-radius: 20px;
+      box-shadow: 10px 10px 30px #bebebe, -10px -10px 30px #ffffff;
+      padding: 20px;
+      margin: 20px;
       width: 90%;
-      max-width: 400px;
-      font-size: 16px;
-      margin-bottom: 10px;
-      direction: ltr;
+      max-width: 700px;
     }
-
-    .button-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-      gap: 5px;
-      max-width: 400px;
-      margin: 10px auto;
-    }
-
-    .btn {
-      padding: 10px;
-      font-size: 16px;
-      background-color: #e0e0e0;
+    input, button {
+      font-size: 1rem;
       border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button.action {
-      background-color: #4CAF50;
-      color: white;
-      font-weight: bold;
-    }
-
-    #result {
-      margin-top: 15px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    #history {
-      margin-top: 30px;
-      text-align: right;
-      width: 95%;
-      max-width: 450px;
-      margin-left: auto;
-      margin-right: auto;
-      background-color: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    #history h3 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-
-    .history-item {
+      padding: 10px;
+      border-radius: 10px;
       margin: 5px 0;
-      font-family: monospace;
+      width: 100%;
+      background: #e0e0e0;
+      box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
     }
-
-    @media (max-width: 600px) {
-      .btn {
-        font-size: 14px;
-        padding: 8px;
-      }
+    button {
+      cursor: pointer;
+      background: #e0e0e0;
+      box-shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
+      transition: 0.2s ease;
+    }
+    button:hover {
+      box-shadow: inset 2px 2px 6px #bebebe, inset -2px -2px 6px #ffffff;
+    }
+    #result span {
+      font-weight: bold;
+    }
+    .x { color: #0077cc; }
+    .y { color: #228b22; }
+    .z { color: #ff8800; }
+    .other { color: #9933cc; }
+    canvas {
+      margin-top: 20px;
+      background: #f0f0f0;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>ماشین حساب علمی</h1>
 
-  <input type="text" id="expression" placeholder="عبارت را وارد کنید..." />
-
-  <div class="button-grid">
-    <!-- اعداد -->
-    <button class="btn" onclick="insert('7')">7</button>
-    <button class="btn" onclick="insert('8')">8</button>
-    <button class="btn" onclick="insert('9')">9</button>
-    <button class="btn" onclick="insert('/')">÷</button>
-
-    <button class="btn" onclick="insert('4')">4</button>
-    <button class="btn" onclick="insert('5')">5</button>
-    <button class="btn" onclick="insert('6')">6</button>
-    <button class="btn" onclick="insert('*')">×</button>
-
-    <button class="btn" onclick="insert('1')">1</button>
-    <button class="btn" onclick="insert('2')">2</button>
-    <button class="btn" onclick="insert('3')">3</button>
-    <button class="btn" onclick="insert('-')">−</button>
-
-    <button class="btn" onclick="insert('0')">0</button>
-    <button class="btn" onclick="insert('.')">.</button>
-    <button class="btn" onclick="insert('+')">+</button>
-    <button class="btn" onclick="insert('^')">^</button>
-
-    <!-- توابع -->
-    <button class="btn" onclick="insert('(')">(</button>
-    <button class="btn" onclick="insert(')')">)</button>
-    <button class="btn" onclick="insert('√(')">√</button>
-    <button class="btn" onclick="insert('π')">π</button>
-
-    <button class="btn" onclick="insert('e')">e</button>
-    <button class="btn" onclick="insert('sin(')">sin</button>
-    <button class="btn" onclick="insert('cos(')">cos</button>
-    <button class="btn" onclick="insert('tan(')">tan</button>
-
-    <button class="btn" onclick="insert('log(')">log</button>
+  <div class="neu">
+    <h2>ضرب چندجمله‌ای‌ها</h2>
+    <input type="number" id="count" placeholder="تعداد عبارات" min="2" />
+    <button onclick="generateInputs()">ایجاد ورودی‌ها</button>
+    <div id="inputs"></div>
+    <button onclick="calculate()">محاسبه ضرب و ساده‌سازی</button>
+    <div id="result" class="neu"></div>
+    <canvas id="graph" width="600" height="300"></canvas>
+    <div id="history" class="neu"></div>
   </div>
-
   <div>
-    <button class="action" onclick="calculate()">محاسبه</button>
-    <button class="btn" onclick="clearHistory()">پاک‌کردن تاریخچه</button>
+    <a href="./inde2.html">رفتن به ماشین حساب علمی</a>
   </div>
-
-  <div id="result"></div>
-
-  <div id="history">
-    <h3>تاریخچه:</h3>
-    <div id="history-list"></div>
-  </div>
-
   <script>
-    let historyList = JSON.parse(localStorage.getItem("calcHistory")) || [];
-
-    function insert(text) {
-      const input = document.getElementById('expression');
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      const current = input.value;
-      input.value = current.substring(0, start) + text + current.substring(end);
-      input.focus();
-      input.selectionStart = input.selectionEnd = start + text.length;
-    }
-
-    function calculate() {
-      let input = document.getElementById('expression').value;
-
-      try {
-        input = input.replace(/√/g, 'sqrt');
-        input = input.replace(/\^/g, '**');
-        input = input.replace(/π/g, 'Math.PI');
-        input = input.replace(/\be\b/g, 'Math.E');
-
-        input = input.replace(/\bsqrt\(/g, 'Math.sqrt(');
-        input = input.replace(/\bsin\(/g, 'Math.sin(toRadians(');
-        input = input.replace(/\bcos\(/g, 'Math.cos(toRadians(');
-        input = input.replace(/\btan\(/g, 'Math.tan(toRadians(');
-        input = input.replace(/\blog\(/g, 'Math.log10(');
-
-        const result = eval(input);
-        document.getElementById('result').innerText = `نتیجه: ${result}`;
-
-        const item = `${document.getElementById('expression').value} = ${result}`;
-        historyList.unshift(item);
-        saveHistory();
-        updateHistory();
-      } catch (e) {
-        document.getElementById('result').innerText = 'خطا در محاسبه!';
+    function generateInputs() {
+      const count = parseInt(document.getElementById('count').value);
+      const container = document.getElementById('inputs');
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const input = document.createElement('input');
+        input.className = 'poly-input';
+        input.placeholder = `عبارت ${i + 1} (مثلاً 3x+5x^2+6)`;
+        container.appendChild(input);
       }
     }
 
-    function toRadians(deg) {
-      return deg * (Math.PI / 180);
-    }
-
-    function updateHistory() {
-      const historyDiv = document.getElementById('history-list');
-      historyDiv.innerHTML = '';
-      historyList.slice(0, 20).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerText = item;
-        historyDiv.appendChild(div);
+    function parsePoly(str) {
+      const terms = str.replace(/\s+/g, '').match(/[+-]?[^+-]+/g);
+      const poly = {};
+      terms?.forEach(term => {
+        let match = term.match(/^([+-]?\d*)([a-zA-Z]?)(\^(\d+))?$/);
+        if (match) {
+          let [, coeff, variable, , power] = match;
+          coeff = coeff === '' || coeff === '+' ? 1 : coeff === '-' ? -1 : parseFloat(coeff);
+          const key = variable ? variable + (power ? '^' + power : '') : '1';
+          poly[key] = (poly[key] || 0) + coeff;
+        }
       });
+      return poly;
     }
 
-    function saveHistory() {
-      localStorage.setItem("calcHistory", JSON.stringify(historyList));
+    function multiplyPolys(p1, p2) {
+      const result = {};
+      for (let key1 in p1) {
+        for (let key2 in p2) {
+          const coeff = p1[key1] * p2[key2];
+          const vars1 = key1 === '1' ? [] : key1.split('*');
+          const vars2 = key2 === '1' ? [] : key2.split('*');
+          const combinedVars = [...vars1, ...vars2];
+          const varMap = {};
+          for (let v of combinedVars) {
+            let [name, pow] = v.split('^');
+            pow = parseInt(pow || 1);
+            varMap[name] = (varMap[name] || 0) + pow;
+          }
+          const sortedVars = Object.entries(varMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([name, pow]) => pow === 1 ? name : `${name}^${pow}`)
+            .join('*');
+          const key = sortedVars || '1';
+          result[key] = (result[key] || 0) + coeff;
+        }
+      }
+      return result;
     }
 
-    function clearHistory() {
-      historyList = [];
-      localStorage.removeItem("calcHistory");
-      updateHistory();
-      document.getElementById('result').innerText = '';
+    function formatPoly(poly) {
+      return Object.entries(poly)
+        .filter(([_, coeff]) => coeff !== 0)
+        .sort((a, b) => totalDegree(b[0]) - totalDegree(a[0]))
+        .map(([term, coeff]) => {
+          const colorClass = getColorClass(term);
+          if (term === '1') return `<span>${coeff}</span>`;
+          return `<span class="${colorClass}">${coeff}${term.replace(/\*/g, '')}</span>`;
+        })
+        .join(' + ')
+        .replace(/\+\s-\s/g, '- ');
     }
 
-    updateHistory();
+    function totalDegree(term) {
+      if (term === '1') return 0;
+      return term.split('*').reduce((sum, t) => {
+        const [, pow] = t.split('^');
+        return sum + (parseInt(pow || 1));
+      }, 0);
+    }
+
+    function getColorClass(term) {
+      if (term.includes('x')) return 'x';
+      if (term.includes('y')) return 'y';
+      if (term.includes('z')) return 'z';
+      return 'other';
+    }
+
+    function calculate() {
+      const inputs = document.querySelectorAll('.poly-input');
+      let result = parsePoly(inputs[0].value);
+      for (let i = 1; i < inputs.length; i++) {
+        const poly = parsePoly(inputs[i].value);
+        result = multiplyPolys(result, poly);
+      }
+      const resultHTML = formatPoly(result);
+      document.getElementById('result').innerHTML = resultHTML;
+      saveToHistory(inputs, resultHTML);
+      drawGraph(result);
+      showHistory();
+    }
+
+    function saveToHistory(inputs, resultHTML) {
+      const expressions = Array.from(inputs).map(i => i.value).join(' × ');
+      const history = JSON.parse(localStorage.getItem('polyHistory') || '[]');
+      history.unshift({ expr: expressions, result: resultHTML });
+      localStorage.setItem('polyHistory', JSON.stringify(history.slice(0, 10))); // max 10
+    }
+
+    function showHistory() {
+      const historyDiv = document.getElementById('history');
+      const history = JSON.parse(localStorage.getItem('polyHistory') || '[]');
+      historyDiv.innerHTML = `<h3>📚 تاریخچه:</h3>` + history.map(h =>
+        `<div style="margin-bottom: 10px;">
+          <div>➤ ${h.expr}</div>
+          <div>= ${h.result}</div>
+        </div>`
+      ).join('');
+    }
+
+    function drawGraph(poly) {
+      const canvas = document.getElementById('graph');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const scale = 20;
+
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, height);
+      ctx.strokeStyle = "#aaa";
+      ctx.stroke();
+
+      ctx.beginPath();
+      for (let px = 0; px < width; px++) {
+        let x = (px - centerX) / scale;
+        let y = evaluatePoly(poly, x);
+        let py = centerY - y * scale;
+        if (px === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = "#ff3366";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function evaluatePoly(poly, x) {
+      let total = 0;
+      for (let key in poly) {
+        if (key.includes('*') || key.includes('y') || key.includes('z')) continue;
+        const match = key.match(/x(?:\^(\d+))?/);
+        const power = match ? parseInt(match[1] || 1) : 0;
+        total += poly[key] * Math.pow(x, power);
+      }
+      return total;
+    }
+
+    window.onload = showHistory;
   </script>
+
 </body>
 </html>
