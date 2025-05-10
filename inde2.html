@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ماشین حساب علمی</title>
+  <style>
+    body {
+      font-family: Tahoma, sans-serif;
+      padding: 20px;
+      direction: rtl;
+      background-color: #f5f5f5;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 90%;
+      max-width: 400px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 5px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #history {
+      margin-top: 30px;
+      text-align: right;
+      width: 95%;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #history h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .history-item {
+      margin: 5px 0;
+      font-family: monospace;
+    }
+
+    @media (max-width: 600px) {
+      input[type="text"] {
+        font-size: 14px;
+      }
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>ماشین حساب علمی با تاریخچه ذخیره‌شونده</h1>
+
+  <input type="text" id="expression" placeholder="مثال: √25 + sin(30)" />
+  <div>
+    <button onclick="calculate()">محاسبه</button>
+    <button onclick="clearHistory()">پاک‌کردن تاریخچه</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="history">
+    <h3>تاریخچه:</h3>
+    <div id="history-list"></div>
+  </div>
+
+  <script>
+    let historyList = JSON.parse(localStorage.getItem("calcHistory")) || [];
+
+    function calculate() {
+      let input = document.getElementById('expression').value;
+
+      try {
+        // جایگزینی نمادها و توابع
+        input = input.replace(/√/g, 'sqrt');
+        input = input.replace(/\^/g, '**');
+        input = input.replace(/π/g, 'Math.PI');
+        input = input.replace(/\be\b/g, 'Math.E');
+
+        input = input.replace(/\bsqrt\(/g, 'Math.sqrt(');
+        input = input.replace(/\bsin\(/g, 'Math.sin(toRadians(');
+        input = input.replace(/\bcos\(/g, 'Math.cos(toRadians(');
+        input = input.replace(/\btan\(/g, 'Math.tan(toRadians(');
+        input = input.replace(/\blog\(/g, 'Math.log10(');
+
+        const result = eval(input);
+        document.getElementById('result').innerText = `نتیجه: ${result}`;
+
+        const item = `${document.getElementById('expression').value} = ${result}`;
+        historyList.unshift(item);
+        saveHistory();
+        updateHistory();
+      } catch (e) {
+        document.getElementById('result').innerText = 'خطا در محاسبه!';
+      }
+    }
+
+    function toRadians(deg) {
+      return deg * (Math.PI / 180);
+    }
+
+    function updateHistory() {
+      const historyDiv = document.getElementById('history-list');
+      historyDiv.innerHTML = '';
+      historyList.slice(0, 20).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerText = item;
+        historyDiv.appendChild(div);
+      });
+    }
+
+    function saveHistory() {
+      localStorage.setItem("calcHistory", JSON.stringify(historyList));
+    }
+
+    function clearHistory() {
+      historyList = [];
+      localStorage.removeItem("calcHistory");
+      updateHistory();
+      document.getElementById('result').innerText = '';
+    }
+
+    // بارگذاری اولیه تاریخچه
+    updateHistory();
+  </script>
+</body>
+</html>
