@@ -24,13 +24,30 @@
       max-width: 400px;
       font-size: 16px;
       margin-bottom: 10px;
+      direction: ltr;
     }
 
-    button {
-      padding: 10px 20px;
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 5px;
+      max-width: 400px;
+      margin: 10px auto;
+    }
+
+    .btn {
+      padding: 10px;
       font-size: 16px;
-      margin: 10px 5px;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
+    }
+
+    button.action {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
     }
 
     #result {
@@ -63,22 +80,57 @@
     }
 
     @media (max-width: 600px) {
-      input[type="text"] {
+      .btn {
         font-size: 14px;
-      }
-      button {
-        font-size: 14px;
+        padding: 8px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>ماشین حساب علمی با تاریخچه ذخیره‌شونده</h1>
+  <h1>ماشین حساب علمی</h1>
 
-  <input type="text" id="expression" placeholder="مثال: √25 + sin(30)" />
+  <input type="text" id="expression" placeholder="عبارت را وارد کنید..." />
+
+  <div class="button-grid">
+    <!-- اعداد -->
+    <button class="btn" onclick="insert('7')">7</button>
+    <button class="btn" onclick="insert('8')">8</button>
+    <button class="btn" onclick="insert('9')">9</button>
+    <button class="btn" onclick="insert('/')">÷</button>
+
+    <button class="btn" onclick="insert('4')">4</button>
+    <button class="btn" onclick="insert('5')">5</button>
+    <button class="btn" onclick="insert('6')">6</button>
+    <button class="btn" onclick="insert('*')">×</button>
+
+    <button class="btn" onclick="insert('1')">1</button>
+    <button class="btn" onclick="insert('2')">2</button>
+    <button class="btn" onclick="insert('3')">3</button>
+    <button class="btn" onclick="insert('-')">−</button>
+
+    <button class="btn" onclick="insert('0')">0</button>
+    <button class="btn" onclick="insert('.')">.</button>
+    <button class="btn" onclick="insert('+')">+</button>
+    <button class="btn" onclick="insert('^')">^</button>
+
+    <!-- توابع -->
+    <button class="btn" onclick="insert('(')">(</button>
+    <button class="btn" onclick="insert(')')">)</button>
+    <button class="btn" onclick="insert('√(')">√</button>
+    <button class="btn" onclick="insert('π')">π</button>
+
+    <button class="btn" onclick="insert('e')">e</button>
+    <button class="btn" onclick="insert('sin(')">sin</button>
+    <button class="btn" onclick="insert('cos(')">cos</button>
+    <button class="btn" onclick="insert('tan(')">tan</button>
+
+    <button class="btn" onclick="insert('log(')">log</button>
+  </div>
+
   <div>
-    <button onclick="calculate()">محاسبه</button>
-    <button onclick="clearHistory()">پاک‌کردن تاریخچه</button>
+    <button class="action" onclick="calculate()">محاسبه</button>
+    <button class="btn" onclick="clearHistory()">پاک‌کردن تاریخچه</button>
   </div>
 
   <div id="result"></div>
@@ -91,11 +143,20 @@
   <script>
     let historyList = JSON.parse(localStorage.getItem("calcHistory")) || [];
 
+    function insert(text) {
+      const input = document.getElementById('expression');
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const current = input.value;
+      input.value = current.substring(0, start) + text + current.substring(end);
+      input.focus();
+      input.selectionStart = input.selectionEnd = start + text.length;
+    }
+
     function calculate() {
       let input = document.getElementById('expression').value;
 
       try {
-        // جایگزینی نمادها و توابع
         input = input.replace(/√/g, 'sqrt');
         input = input.replace(/\^/g, '**');
         input = input.replace(/π/g, 'Math.PI');
@@ -145,7 +206,6 @@
       document.getElementById('result').innerText = '';
     }
 
-    // بارگذاری اولیه تاریخچه
     updateHistory();
   </script>
 </body>
