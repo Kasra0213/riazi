@@ -1,233 +1,1050 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>ضرب چندجمله‌ای‌ها</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بازی ریاضی پایه‌های هفتم، هشتم و نهم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: 'Vazirmatn', sans-serif;
-      background: #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 50px;
-      direction: rtl;
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: auto;
     }
-    .neu {
-      background: #e0e0e0;
-      border-radius: 20px;
-      box-shadow: 10px 10px 30px #bebebe, -10px -10px 30px #ffffff;
-      padding: 20px;
-      margin: 20px;
-      width: 90%;
-      max-width: 700px;
-    }
-    input, button {
-      font-size: 1rem;
-      border: none;
-      padding: 10px;
-      border-radius: 10px;
-      margin: 5px 0;
-      width: 100%;
-      background: #e0e0e0;
-      box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
-    }
-    button {
-      cursor: pointer;
-      background: #e0e0e0;
-      box-shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
-      transition: 0.2s ease;
-    }
-    button:hover {
-      box-shadow: inset 2px 2px 6px #bebebe, inset -2px -2px 6px #ffffff;
-    }
-    #result span {
-      font-weight: bold;
-    }
-    .x { color: #0077cc; }
-    .y { color: #228b22; }
-    .z { color: #ff8800; }
-    .other { color: #9933cc; }
-    canvas {
-      margin-top: 20px;
-      background: #f0f0f0;
-      border-radius: 10px;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans">
+  <div id="app" class="container mx-auto p-4">
+    <!-- لودینگ -->
+    <div id="loading" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="loading-spinner"></div>
+    </div>
 
-  <div class="neu">
-    <h2>ضرب چندجمله‌ای‌ها</h2>
-    <input type="number" id="count" placeholder="تعداد عبارات" min="2" />
-    <button onclick="generateInputs()">ایجاد ورودی‌ها</button>
-    <div id="inputs"></div>
-    <button onclick="calculate()">محاسبه ضرب و ساده‌سازی</button>
-    <div id="result" class="neu"></div>
-    <canvas id="graph" width="600" height="300"></canvas>
-    <div id="history" class="neu"></div>
+    <!-- دکمه خروج -->
+    <div id="logout-section" class="hidden text-center mb-4">
+      <button id="logout-btn" class="bg-red-500 text-white p-2 rounded hover:bg-red-600">خروج</button>
+    </div>
+
+    <!-- صفحه ثبت‌نام و ورود -->
+    <div id="auth-section" class="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">ثبت‌نام / ورود</h2>
+      <div id="register-form">
+        <input id="first-name" type="text" placeholder="نام" class="w-full p-2 mb-4 border rounded">
+        <input id="last-name" type="text" placeholder="نام خانوادگی" class="w-full p-2 mb-4 border rounded">
+        <select id="grade" class="w-full p-2 mb-4 border rounded">
+          <option value="7">پایه هفتم</option>
+          <option value="8">پایه هشتم</option>
+          <option value="9">پایه نهم</option>
+        </select>
+        <input id="email" type="email" placeholder="ایمیل" class="w-full p-2 mb-4 border rounded">
+        <input id="password" type="password" placeholder="رمز عبور" class="w-full p-2 mb-4 border rounded">
+        <button id="register-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ثبت‌نام</button>
+      </div>
+      <div id="login-form" class="mt-4">
+        <input id="login-email" type="email" placeholder="ایمیل" class="w-full p-2 mb-4 border rounded">
+        <input id="login-password" type="password" placeholder="رمز عبور" class="w-full p-2 mb-4 border rounded">
+        <button id="login-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">ورود</button>
+      </div>
+    </div>
+
+    <!-- صفحه تأیید ایمیل -->
+    <div id="verify-email-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">تأیید ایمیل</h2>
+      <p class="mb-4">لطفاً ایمیل خود را تأیید کنید. یک لینک تأیید به ایمیل شما ارسال شده است.</p>
+      <button id="resend-verification-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ارسال مجدد ایمیل تأیید</button>
+      <button id="check-verification-btn" class="w-full bg-green-500 text-white p-2 rounded mt-2 hover:bg-green-600">بررسی وضعیت تأیید</button>
+    </div>
+
+    <!-- انتخاب پایه و فصل -->
+    <div id="grade-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">انتخاب پایه و فصل</h2>
+      <select id="grade-select" class="w-full p-2 mb-4 border rounded">
+        <option value="7">پایه هفتم</option>
+        <option value="8">پایه هشتم</option>
+        <option value="9">پایه نهم</option>
+      </select>
+      <select id="chapter-select" class="w-full p-2 mb-4 border rounded"></select>
+      <div id="user-actions" class="space-y-2">
+        <button id="start-quiz-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">شروع آزمون</button>
+        <button id="start-daily-mission-btn" class="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600">مأموریت روزانه</button>
+        <button id="start-challenge-btn" class="w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600">چالش ویژه</button>
+        <button id="view-progress-btn" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">مشاهده پیشرفت</button>
+        <button id="view-chat-btn" class="w-full bg-teal-500 text-white p-2 rounded hover:bg-teal-600">چت با مربی</button>
+        <button id="view-leaderboard-btn" class="w-full bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600">جدول رتبه‌بندی</button>
+        <button id="view-group-chat-btn" class="w-full bg-pink-500 text-white p-2 rounded hover:bg-pink-600">چت گروهی برترین‌ها</button>
+      </div>
+      <button id="view-admin-panel-btn" class="w-full bg-gray-500 text-white p-2 rounded mt-2 hover:bg-gray-600 hidden">پنل ادمین</button>
+    </div>
+
+    <!-- صفحه آزمون -->
+    <div id="quiz-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 id="question-title" class="text-xl font-bold mb-4"></h2>
+      <div id="options" class="space-y-2"></div>
+      <div id="timer" class="text-red-500 font-bold mt-4"></div>
+      <button id="submit-answer-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">ارسال پاسخ</button>
+      <button id="end-quiz-btn" class="bg-red-500 text-white p-2 rounded mt-2 hover:bg-red-600">پایان آزمون</button>
+    </div>
+
+    <!-- صفحه درسنامه -->
+    <div id="lesson-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">درسنامه</h2>
+      <div id="lesson-content" class="prose"></div>
+      <button id="back-to-grade-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
+    </div>
+
+    <!-- صفحه تحلیل عملکرد -->
+    <div id="progress-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">تحلیل عملکرد</h2>
+      <canvas id="progress-chart" width="400" height="200"></canvas>
+      <button id="back-to-grade-from-progress-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
+    </div>
+
+    <!-- صفحه جدول رتبه‌بندی -->
+    <div id="leaderboard-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">جدول رتبه‌بندی</h2>
+      <div id="leaderboard-content" class="space-y-2"></div>
+      <button id="back-to-grade-from-leaderboard-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
+    </div>
+
+    <!-- صفحه چت گروهی برترین‌ها -->
+    <div id="group-chat-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">چت گروهی برترین‌ها</h2>
+      <div id="group-chat-history" class="h-64 overflow-y-auto border p-2 mb-4"></div>
+      <input id="group-chat-input" type="text" placeholder="پیام خود را بنویسید..." class="w-full p-2 mb-4 border rounded">
+      <input id="group-chat-file" type="file" class="w-full p-2 mb-4 border rounded">
+      <button id="send-group-chat-btn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ارسال</button>
+      <button id="back-to-grade-from-group-chat-btn" class="bg-blue-500 text-white p-2 rounded mt-2 hover:bg-blue-600">بازگشت</button>
+    </div>
+
+    <!-- صفحه چت با مربی -->
+    <div id="chat-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">چت با مربی هوش مصنوعی</h2>
+      <div id="chat-history" class="h-64 overflow-y-auto border p-2 mb-4"></div>
+      <input id="chat-input" type="text" placeholder="سوال خود را بپرسید..." class="w-full p-2 mb-4 border rounded">
+      <button id="send-chat-btn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ارسال</button>
+      <button id="back-to-grade-from-chat-btn" class="bg-blue-500 text-white p-2 rounded mt-2 hover:bg-blue-600">بازگشت</button>
+    </div>
+
+    <!-- پنل ادمین -->
+    <div id="admin-panel-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">پنل ادمین</h2>
+      <h3 class="text-xl font-bold mb-2">مدیریت مأموریت‌های روزانه</h3>
+      <select id="admin-grade-select" class="w-full p-2 mb-4 border rounded">
+        <option value="7">پایه هفتم</option>
+        <option value="8">پایه هشتم</option>
+        <option value="9">پایه نهم</option>
+      </select>
+      <select id="admin-chapter-select" class="w-full p-2 mb-4 border rounded"></select>
+      <input id="admin-mission-question" type="text" placeholder="سؤال مأموریت روزانه" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-mission-answer" type="text" placeholder="پاسخ صحیح" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-mission-options" type="text" placeholder="گزینه‌ها (با کاما جدا کنید)" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-mission-points" type="number" placeholder="امتیاز" class="w-full p-2 mb-4 border rounded">
+      <button id="add-mission-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">افزودن مأموریت</button>
+      <h3 class="text-xl font-bold mb-2 mt-4">مدیریت چالش‌های ویژه</h3>
+      <input id="admin-challenge-question" type="text" placeholder="سؤال چالش ویژه" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-challenge-answer" type="text" placeholder="پاسخ صحیح" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-challenge-options" type="text" placeholder="گزینه‌ها (با کاما جدا کنید)" class="w-full p-2 mb-4 border rounded">
+      <input id="admin-challenge-points" type="number" placeholder="امتیاز" class="w-full p-2 mb-4 border rounded">
+      <button id="add-challenge-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">افزودن چالش</button>
+      <h3 class="text-xl font-bold mb-2 mt-4">مدیریت کاربران</h3>
+      <div id="admin-users" class="space-y-2"></div>
+      <button id="back-to-grade-from-admin-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
+    </div>
   </div>
-  <div>
-    <a href="./inde2.html">رفتن به ماشین حساب علمی</a>
-  </div>
-  <script>
-    function generateInputs() {
-      const count = parseInt(document.getElementById('count').value);
-      const container = document.getElementById('inputs');
-      container.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const input = document.createElement('input');
-        input.className = 'poly-input';
-        input.placeholder = `عبارت ${i + 1} (مثلاً 3x+5x^2+6)`;
-        container.appendChild(input);
+
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, orderBy, query, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvOSxhQUOGXkomupnEAZ3R8VU86aoK_vo",
+      authDomain: "riazi-ea106.firebaseapp.com",
+      projectId: "riazi-ea106",
+      storageBucket: "riazi-ea106.appspot.com",
+      messagingSenderId: "756937494755",
+      appId: "1:756937494755:web:58474eb07ec4f702f9b5d6"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Chapters data
+    const chapters = {
+      7: [
+        { id: 2, name: "عددهای صحیح" },
+        { id: 3, name: "جبر و معادله" },
+        { id: 4, name: "هندسه و استدلال" },
+        { id: 5, name: "شمارنده‌ها و اعداد اول" },
+        { id: 6, name: "سطح و حجم" },
+        { id: 7, name: "توان و جذر" },
+        { id: 8, name: "بردار و مختصات" },
+        { id: 9, name: "آمار و احتمال" }
+      ],
+      8: [
+        { id: 1, name: "عدد‌های صحیح و گویا" },
+        { id: 2, name: "عددهای اول" },
+        { id: 3, name: "چند‌ضلعی‌ها" },
+        { id: 4, name: "جبر و معادله" },
+        { id: 5, name: "بردار و مختصات" },
+        { id: 6, name: "مثلث" },
+        { id: 7, name: "توان و جذر" },
+        { id: 8, name: "آمار و احتمال" },
+        { id: 9, name: "دایره" }
+      ],
+      9: [
+        { id: 1, name: "مجموعه‌ها" },
+        { id: 2, name: "عددهای حقیقی" },
+        { id: 3, name: "استدلال و اثبات در هندسه" },
+        { id: 4, name: "توان و ریشه" },
+        { id: 5, name: "عبارت‌های جبری" },
+        { id: 6, name: "خط و معادله‌های خطی" },
+        { id: 7, name: "عبارت‌های گویا" },
+        { id: 8, name: "حجم و مساحت" }
+      ]
+    };
+
+    // Topics for question generation
+    const topics = {
+      7: {
+        2: ["جمع و تفریق اعداد صحیح", "ضرب و تقسیم اعداد صحیح"],
+        3: ["معادلات خطی ساده", "عبارت‌های جبری"],
+        4: ["زاویه‌ها و خطوط", "خواص مثلث"],
+        5: ["شمارنده‌ها", "تجزیه اعداد به عوامل اول"],
+        6: ["مساحت و محیط اشکال", "حجم اشکال سه‌بعدی"],
+        7: ["قوانین توان", "ریشه‌های مربعی"],
+        8: ["مختصات دکارتی", "بردارهای اولیه"],
+        9: ["میانگین و میانه", "احتمال ساده"]
+      },
+      8: {
+        1: ["عملیات با اعداد گویا", "تبدیل کسر به اعشار"],
+        2: ["تشخیص اعداد اول", "تجزیه به عوامل اول"],
+        3: ["خواص چندضلعی‌ها", "محیط و مساحت چندضلعی‌ها"],
+        4: ["معادلات خطی", "عبارت‌های جبری پیچیده‌تر"],
+        5: ["مختصات و انتقال", "بردارهای پیشرفته"],
+        6: ["خواص مثلث", "قضیه فیثاغورس"],
+        7: ["قوانین توان پیشرفته", "ریشه‌های nام"],
+        8: ["نمودارهای آماری", "احتمال شرطی"],
+        9: ["خواص دایره", "طول کمان و مساحت قطاع"]
+      },
+      9: {
+        1: ["عملگرهای مجموعه", "نمودار ون"],
+        2: ["عملیات با اعداد حقیقی", "اعداد گنگ"],
+        3: ["استدلال هندسی", "اثبات‌های ساده"],
+        4: ["قوانین توان و ریشه", "ساده‌سازی عبارات توان‌دار"],
+        5: ["فاکتورگیری", "ساده‌سازی عبارات جبری"],
+        6: ["معادله خط", "شیب و عرض از مبدا"],
+        7: ["ساده‌سازی عبارات گویا", "عملیات با کسرهای جبری"],
+        8: ["حجم اشکال سه‌بعدی", "مساحت سطح"]
+      }
+    };
+
+    // UI management
+    function showSection(sectionId) {
+      document.querySelectorAll("#app > div").forEach(div => div.classList.add("hidden"));
+      document.getElementById(sectionId).classList.remove("hidden");
+      document.getElementById("loading").classList.add("hidden");
+    }
+
+    function showLoading() {
+      document.getElementById("loading").classList.remove("hidden");
+    }
+
+    function hideLoading() {
+      document.getElementById("loading").classList.add("hidden");
+    }
+
+    // Generate question with Gemini via proxy
+    async function generateQuestion(grade, chapterId, difficulty) {
+      showLoading();
+      const topic = topics[grade][chapterId][Math.floor(Math.random() * topics[grade][chapterId].length)];
+      const prompt = `Generate a math question for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", topic: "${topic}", difficulty level: ${difficulty} (1 for easy, 2 for medium, 3 for hard). Provide the question, correct answer, and 4 multiple-choice options in JSON format. Ensure options are strings or numbers, and the correct answer is one of the options. Example: {"question": "2 + 2 = ?", "correctAnswer": "4", "options": ["2", "4", "6", "8"]}`;
+      try {
+        const response = await fetch("http://localhost:3000/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const data = await response.json();
+        const rawText = data.candidates[0].content.parts[0].text.replace(/```json\n|\n```/g, '');
+        const result = JSON.parse(rawText);
+        if (!result.question || !result.correctAnswer || !Array.isArray(result.options) || result.options.length !== 4 || !result.options.includes(result.correctAnswer)) {
+          throw new Error("Invalid question format");
+        }
+        hideLoading();
+        return {
+          text: result.question,
+          correctAnswer: result.correctAnswer,
+          options: result.options.map(String),
+          topic,
+          difficulty
+        };
+      } catch (error) {
+        hideLoading();
+        console.error("Error generating question:", error.message);
+        alert("خطا در تولید سؤال. لطفاً دوباره تلاش کنید.");
+        return null;
       }
     }
 
-    function parsePoly(str) {
-      const terms = str.replace(/\s+/g, '').match(/[+-]?[^+-]+/g);
-      const poly = {};
-      terms?.forEach(term => {
-        let match = term.match(/^([+-]?\d*)([a-zA-Z]?)(\^(\d+))?$/);
-        if (match) {
-          let [, coeff, variable, , power] = match;
-          coeff = coeff === '' || coeff === '+' ? 1 : coeff === '-' ? -1 : parseFloat(coeff);
-          const key = variable ? variable + (power ? '^' + power : '') : '1';
-          poly[key] = (poly[key] || 0) + coeff;
-        }
-      });
-      return poly;
+    // Generate lesson with Gemini via proxy
+    async function generateLesson(grade, chapterId, userAnswers) {
+      showLoading();
+      const incorrectTopics = userAnswers.filter(a => !a.isCorrect).map(a => a.topic).join(", ") || "هیچ اشتباه";
+      const prompt = `Generate a detailed lesson in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", focusing on topics where the user answered incorrectly: ${incorrectTopics}. Include explanations for correct and incorrect answers: ${JSON.stringify(userAnswers)}. Format the response in HTML with clear sections and examples.`;
+      try {
+        const response = await fetch("http://localhost:3000/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const data = await response.json();
+        hideLoading();
+        return data.candidates[0].content.parts[0].text.replace(/```html\n|\n```/g, '');
+      } catch (error) {
+        hideLoading();
+        console.error("Error generating lesson:", error.message);
+        return `<p>درسنامه برای پایه ${grade}، فصل ${chapters[grade].find(c => c.id == chapterId).name}: لطفاً روی موضوعات ${incorrectTopics} تمرکز کنید.</p>`;
+      }
     }
 
-    function multiplyPolys(p1, p2) {
-      const result = {};
-      for (let key1 in p1) {
-        for (let key2 in p2) {
-          const coeff = p1[key1] * p2[key2];
-          const vars1 = key1 === '1' ? [] : key1.split('*');
-          const vars2 = key2 === '1' ? [] : key2.split('*');
-          const combinedVars = [...vars1, ...vars2];
-          const varMap = {};
-          for (let v of combinedVars) {
-            let [name, pow] = v.split('^');
-            pow = parseInt(pow || 1);
-            varMap[name] = (varMap[name] || 0) + pow;
+    // Chat with Gemini coach via proxy
+    async function getCoachResponse(question) {
+      showLoading();
+      const prompt = `You are a math coach for grades 7-9. Answer the following question in Persian: "${question}". Provide a clear and educational response in HTML format.`;
+      try {
+        const response = await fetch("http://localhost:3000/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const data = await response.json();
+        hideLoading();
+        return data.candidates[0].content.parts[0].text.replace(/```html\n|\n```/g, '');
+      } catch (error) {
+        hideLoading();
+        console.error("Error in coach response:", error.message);
+        return `<p>پاسخ به سوال شما: "${question}"<br>لطفاً روی این موضوع تمرکز کنید و دوباره سوال بپرسید.</p>`;
+      }
+    }
+
+    // Authentication
+    let currentUser = null;
+    let isAdmin = false;
+
+    function updateUIBasedOnRole() {
+      const userActionsDiv = document.getElementById("user-actions");
+      const adminButton = document.getElementById("view-admin-panel-btn");
+      if (isAdmin) {
+        userActionsDiv.classList.add("hidden");
+        adminButton.classList.remove("hidden");
+        showSection("admin-panel-section");
+      } else {
+        userActionsDiv.classList.remove("hidden");
+        adminButton.classList.add("hidden");
+        showSection("grade-section");
+      }
+    }
+
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        currentUser = user.uid;
+        document.getElementById("logout-section").classList.remove("hidden");
+        isAdmin = user.email === "k.sharafie@gmail.com";
+        if (!user.emailVerified) {
+          showSection("verify-email-section");
+        } else {
+          updateUIBasedOnRole();
+          if (isAdmin) {
+            loadAdminPanel();
           }
-          const sortedVars = Object.entries(varMap)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, pow]) => pow === 1 ? name : `${name}^${pow}`)
-            .join('*');
-          const key = sortedVars || '1';
-          result[key] = (result[key] || 0) + coeff;
+        }
+      } else {
+        currentUser = null;
+        isAdmin = false;
+        document.getElementById("logout-section").classList.add("hidden");
+        document.getElementById("view-admin-panel-btn").classList.add("hidden");
+        document.getElementById("user-actions").classList.remove("hidden");
+        showSection("auth-section");
+      }
+    });
+
+    document.getElementById("register-btn").addEventListener("click", async () => {
+      showLoading();
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const grade = document.getElementById("grade").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!firstName || !lastName || !grade || !email || !password) {
+        alert("لطفاً تمام فیلدها را پر کنید!");
+        hideLoading();
+        return;
+      }
+      if (password.length < 6) {
+        alert("رمز عبور باید حداقل 6 کاراکتر باشد!");
+        hideLoading();
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await sendEmailVerification(user);
+        await setDoc(doc(db, "users", user.uid), {
+          firstName,
+          lastName,
+          grade,
+          email,
+          points: 0,
+          role: email === "k.sharafie@gmail.com" ? "admin" : "user",
+          createdAt: new Date().toISOString()
+        });
+        alert("ثبت‌نام با موفقیت انجام شد! لطفاً ایمیل خود را تأیید کنید.");
+        showSection("verify-email-section");
+      } catch (error) {
+        console.error("Registration error:", error.message);
+        alert(`خطا در ثبت‌نام: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      showLoading();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      if (!email || !password) {
+        alert("لطفاً ایمیل و رمز عبور را وارد کنید!");
+        hideLoading();
+        return;
+      }
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        if (!user.emailVerified) {
+          alert("لطفاً ابتدا ایمیل خود را تأیید کنید!");
+          showSection("verify-email-section");
+        }
+      } catch (error) {
+        console.error("Login error:", error.message);
+        alert(`خطا در ورود: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      showLoading();
+      try {
+        await signOut(auth);
+        alert("با موفقیت خارج شدید!");
+      } catch (error) {
+        console.error("Logout error:", error.message);
+        alert(`خطا در خروج: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("resend-verification-btn").addEventListener("click", async () => {
+      showLoading();
+      if (!auth.currentUser) {
+        alert("کاربر وارد نشده است. لطفاً دوباره وارد شوید.");
+        showSection("auth-section");
+        hideLoading();
+        return;
+      }
+      try {
+        await sendEmailVerification(auth.currentUser);
+        alert("ایمیل تأیید مجدداً ارسال شد!");
+      } catch (error) {
+        console.error("Resend verification error:", error.message);
+        alert(`خطا در ارسال ایمیل تأیید: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("check-verification-btn").addEventListener("click", async () => {
+      showLoading();
+      if (!auth.currentUser) {
+        alert("کاربر وارد نشده است. لطفاً دوباره وارد شوید.");
+        showSection("auth-section");
+        hideLoading();
+        return;
+      }
+      try {
+        await auth.currentUser.reload();
+        if (auth.currentUser.emailVerified) {
+          updateUIBasedOnRole();
+        } else {
+          alert("ایمیل شما هنوز تأیید نشده است!");
+        }
+      } catch (error) {
+        console.error("Check verification error:", error.message);
+        alert(`خطا در بررسی تأیید ایمیل: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    // Populate chapters
+    function populateChapters(gradeSelectId, chapterSelectId) {
+      const grade = document.getElementById(gradeSelectId).value;
+      const chapterSelect = document.getElementById(chapterSelectId);
+      chapterSelect.innerHTML = "";
+      chapters[grade].forEach(chapter => {
+        const option = document.createElement("option");
+        option.value = chapter.id;
+        option.textContent = chapter.name;
+        chapterSelect.appendChild(option);
+      });
+    }
+
+    document.getElementById("grade-select").addEventListener("change", () => populateChapters("grade-select", "chapter-select"));
+    document.getElementById("admin-grade-select").addEventListener("change", () => populateChapters("admin-grade-select", "admin-chapter-select"));
+
+    // Quiz logic
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let timerInterval;
+    let quizType = "standard";
+
+    async function startQuiz(type) {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند آزمون شرکت کند!");
+        return;
+      }
+      showLoading();
+      quizType = type;
+      const grade = document.getElementById("grade-select").value;
+      const chapterId = document.getElementById("chapter-select").value;
+      currentQuestions = [];
+      if (type === "daily" || type === "challenge") {
+        const collectionName = type === "daily" ? "dailyMissions" : "challenges";
+        const q = query(collection(db, collectionName, grade, chapterId));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          currentQuestions.push({
+            text: data.question,
+            correctAnswer: data.correctAnswer,
+            options: data.options,
+            topic: data.topic,
+            difficulty: data.difficulty,
+            points: data.points
+          });
+        });
+      } else {
+        for (let i = 1; i <= 10; i++) {
+          const difficulty = (i % 3) + 1;
+          const question = await generateQuestion(grade, chapterId, difficulty);
+          if (question) currentQuestions.push({ ...question, points: difficulty * 10 });
         }
       }
-      return result;
-    }
-
-    function formatPoly(poly) {
-      return Object.entries(poly)
-        .filter(([_, coeff]) => coeff !== 0)
-        .sort((a, b) => totalDegree(b[0]) - totalDegree(a[0]))
-        .map(([term, coeff]) => {
-          const colorClass = getColorClass(term);
-          if (term === '1') return `<span>${coeff}</span>`;
-          return `<span class="${colorClass}">${coeff}${term.replace(/\*/g, '')}</span>`;
-        })
-        .join(' + ')
-        .replace(/\+\s-\s/g, '- ');
-    }
-
-    function totalDegree(term) {
-      if (term === '1') return 0;
-      return term.split('*').reduce((sum, t) => {
-        const [, pow] = t.split('^');
-        return sum + (parseInt(pow || 1));
-      }, 0);
-    }
-
-    function getColorClass(term) {
-      if (term.includes('x')) return 'x';
-      if (term.includes('y')) return 'y';
-      if (term.includes('z')) return 'z';
-      return 'other';
-    }
-
-    function calculate() {
-      const inputs = document.querySelectorAll('.poly-input');
-      let result = parsePoly(inputs[0].value);
-      for (let i = 1; i < inputs.length; i++) {
-        const poly = parsePoly(inputs[i].value);
-        result = multiplyPolys(result, poly);
+      if (currentQuestions.length === 0) {
+        alert("هیچ سؤالی موجود نیست!");
+        hideLoading();
+        return;
       }
-      const resultHTML = formatPoly(result);
-      document.getElementById('result').innerHTML = resultHTML;
-      saveToHistory(inputs, resultHTML);
-      drawGraph(result);
-      showHistory();
+      currentQuestionIndex = 0;
+      userAnswers = [];
+      showQuestion();
+      showSection("quiz-section");
+      hideLoading();
     }
 
-    function saveToHistory(inputs, resultHTML) {
-      const expressions = Array.from(inputs).map(i => i.value).join(' × ');
-      const history = JSON.parse(localStorage.getItem('polyHistory') || '[]');
-      history.unshift({ expr: expressions, result: resultHTML });
-      localStorage.setItem('polyHistory', JSON.stringify(history.slice(0, 10))); // max 10
+    document.getElementById("start-quiz-btn").addEventListener("click", () => startQuiz("standard"));
+    document.getElementById("start-daily-mission-btn").addEventListener("click", () => startQuiz("daily"));
+    document.getElementById("start-challenge-btn").addEventListener("click", () => startQuiz("challenge"));
+
+    function showQuestion() {
+      const question = currentQuestions[currentQuestionIndex];
+      document.getElementById("question-title").textContent = question.text;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      question.options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = String(option);
+        button.classList.add("w-full", "p-2", "border", "rounded", "hover:bg-gray-200");
+        button.addEventListener("click", () => {
+          document.querySelectorAll("#options button").forEach(btn => btn.classList.remove("bg-blue-200"));
+          button.classList.add("bg-blue-200");
+        });
+        optionsDiv.appendChild(button);
+      });
+
+      const timeLimits = { 1: 30, 2: 45, 3: 60 };
+      let timeLeft = timeLimits[question.difficulty] || 30;
+      document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          submitAnswer(null);
+        }
+      }, 1000);
     }
 
-    function showHistory() {
-      const historyDiv = document.getElementById('history');
-      const history = JSON.parse(localStorage.getItem('polyHistory') || '[]');
-      historyDiv.innerHTML = `<h3>📚 تاریخچه:</h3>` + history.map(h =>
-        `<div style="margin-bottom: 10px;">
-          <div>➤ ${h.expr}</div>
-          <div>= ${h.result}</div>
-        </div>`
-      ).join('');
-    }
+    document.getElementById("submit-answer-btn").addEventListener("click", () => {
+      const selectedButton = document.querySelector("#options button.bg-blue-200");
+      const selectedAnswer = selectedButton ? selectedButton.textContent : null;
+      submitAnswer(selectedAnswer);
+    });
 
-    function drawGraph(poly) {
-      const canvas = document.getElementById('graph');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    async function submitAnswer(selectedAnswer) {
+      clearInterval(timerInterval);
+      const question = currentQuestions[currentQuestionIndex];
+      const isCorrect = selectedAnswer === question.correctAnswer;
+      userAnswers.push({
+        question: question.text,
+        selected: selectedAnswer,
+        correct: question.correctAnswer,
+        isCorrect,
+        topic: question.topic,
+        points: isCorrect ? question.points : 0
+      });
 
-      const width = canvas.width;
-      const height = canvas.height;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const scale = 20;
-
-      ctx.beginPath();
-      ctx.moveTo(0, centerY);
-      ctx.lineTo(width, centerY);
-      ctx.moveTo(centerX, 0);
-      ctx.lineTo(centerX, height);
-      ctx.strokeStyle = "#aaa";
-      ctx.stroke();
-
-      ctx.beginPath();
-      for (let px = 0; px < width; px++) {
-        let x = (px - centerX) / scale;
-        let y = evaluatePoly(poly, x);
-        let py = centerY - y * scale;
-        if (px === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+      currentQuestionIndex++;
+      if (currentQuestionIndex < currentQuestions.length) {
+        showQuestion();
+      } else {
+        await endQuiz();
       }
-      ctx.strokeStyle = "#ff3366";
-      ctx.lineWidth = 2;
-      ctx.stroke();
     }
 
-    function evaluatePoly(poly, x) {
-      let total = 0;
-      for (let key in poly) {
-        if (key.includes('*') || key.includes('y') || key.includes('z')) continue;
-        const match = key.match(/x(?:\^(\d+))?/);
-        const power = match ? parseInt(match[1] || 1) : 0;
-        total += poly[key] * Math.pow(x, power);
+    async function endQuiz() {
+      if (isAdmin) return;
+      clearInterval(timerInterval);
+      const grade = document.getElementById("grade-select").value;
+      const chapterId = document.getElementById("chapter-select").value;
+      const correctCount = userAnswers.filter(a => a.isCorrect).length;
+      const totalPoints = userAnswers.reduce((sum, a) => sum + a.points, 0);
+
+      try {
+        if (!currentUser) throw new Error("کاربر وارد نشده است.");
+        const userDocRef = doc(db, "users", currentUser);
+        const userDoc = await getDoc(userDocRef);
+        let progress = userDoc.exists() ? userDoc.data().progress || {} : {};
+        let points = userDoc.exists() ? userDoc.data().points || 0 : 0;
+        if (!progress[grade]) progress[grade] = {};
+        progress[grade][chapterId] = {
+          completion: (correctCount / userAnswers.length) * 100,
+          answers: userAnswers,
+          timestamp: new Date().toISOString()
+        };
+        points += totalPoints;
+        await setDoc(userDocRef, { progress, points }, { merge: true });
+
+        if (quizType !== "standard") {
+          const collectionName = quizType === "daily" ? "dailyMissionResults" : "challengeResults";
+          await addDoc(collection(db, collectionName, grade, chapterId), {
+            userId: currentUser,
+            answers: userAnswers,
+            points: totalPoints,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        document.getElementById("lesson-content").innerHTML = await generateLesson(grade, chapterId, userAnswers);
+        showSection("lesson-section");
+      } catch (error) {
+        console.error("Error saving progress:", error.message);
+        alert(`خطا در ذخیره پیشرفت: ${error.message}`);
       }
-      return total;
     }
 
-    window.onload = showHistory;
+    document.getElementById("end-quiz-btn").addEventListener("click", endQuiz);
+
+    // Progress chart
+    let progressChart = null;
+    async function showProgress() {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند پیشرفت را مشاهده کند!");
+        return;
+      }
+      showLoading();
+      const grade = document.getElementById("grade-select").value;
+      try {
+        if (!currentUser) throw new Error("کاربر وارد نشده است.");
+        const userDoc = await getDoc(doc(db, "users", currentUser));
+        const progressData = userDoc.exists() && userDoc.data().progress?.[grade] ? userDoc.data().progress[grade] : {};
+        const labels = chapters[grade].map(ch => ch.name);
+        const data = chapters[grade].map(ch => progressData[ch.id]?.completion || 0);
+
+        if (labels.length === 0 || !data.every(d => typeof d === 'number')) {
+          throw new Error("داده‌های نمودار نامعتبر است");
+        }
+
+        const ctx = document.getElementById("progress-chart").getContext("2d");
+        if (progressChart) progressChart.destroy();
+        progressChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: "درصد تکمیل",
+              data,
+              backgroundColor: "rgba(54, 162, 235, 0.2)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true, max: 100, title: { display: true, text: "درصد تکمیل" } },
+              x: { title: { display: true, text: "فصل‌ها" } }
+            }
+          }
+        });
+        showSection("progress-section");
+      } catch (error) {
+        console.error("Error showing progress:", error.message);
+        document.getElementById("progress-chart").style.display = "none";
+        document.querySelector("#progress-section").innerHTML += "<p class='text-red-500'>هیچ داده‌ای برای نمایش پیشرفت وجود ندارد.</p>";
+      } finally {
+        hideLoading();
+      }
+    }
+
+    document.getElementById("view-progress-btn").addEventListener("click", showProgress);
+
+    // Leaderboard
+    async function showLeaderboard() {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند جدول رتبه‌بندی را مشاهده کند!");
+        return;
+      }
+      showLoading();
+      try {
+        const leaderboardContent = document.getElementById("leaderboard-content");
+        leaderboardContent.innerHTML = "";
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const users = [];
+        usersSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.role !== "admin") {
+            users.push({ id: doc.id, ...data });
+          }
+        });
+
+        for (const grade of ["7", "8", "9"]) {
+          const gradeUsers = users.filter(u => u.grade === grade).sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 3);
+          leaderboardContent.innerHTML += `<h3 class="text-lg font-bold mt-4">پایه ${grade}</h3>`;
+          if (gradeUsers.length === 0) {
+            leaderboardContent.innerHTML += "<p>هیچ کاربری در این پایه ثبت نشده است.</p>";
+          } else {
+            gradeUsers.forEach((user, index) => {
+              leaderboardContent.innerHTML += `<p>${index + 1}. ${user.firstName} ${user.lastName} - امتیاز: ${user.points || 0}</p>`;
+            });
+          }
+        }
+        showSection("leaderboard-section");
+      } catch (error) {
+        console.error("Error showing leaderboard:", error.message);
+        alert("خطا در نمایش جدول رتبه‌بندی");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    document.getElementById("view-leaderboard-btn").addEventListener("click", showLeaderboard);
+    document.getElementById("back-to-grade-from-leaderboard-btn").addEventListener("click", () => showSection("grade-section"));
+
+    // Group chat for top 9
+    async function showGroupChat() {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند در چت گروهی شرکت کند!");
+        return;
+      }
+      showLoading();
+      try {
+        const userDoc = await getDoc(doc(db, "users", currentUser));
+        const user = userDoc.exists() ? userDoc.data() : {};
+        const grade = user.grade;
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const users = [];
+        usersSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.role !== "admin") {
+            users.push({ id: doc.id, ...data });
+          }
+        });
+        const topUsers = users.filter(u => u.grade === grade).sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 3).map(u => u.id);
+        if (!topUsers.includes(currentUser)) {
+          alert("شما جزو سه نفر برتر پایه خود نیستید!");
+          showSection("grade-section");
+          return;
+        }
+
+        const groupChatHistory = document.getElementById("group-chat-history");
+        groupChatHistory.innerHTML = "";
+        const q = query(collection(db, "groupChats", grade), orderBy("timestamp"));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+          const chat = doc.data();
+          const fileLink = chat.fileUrl ? `<a href="${chat.fileUrl}" target="_blank">دانلود فایل</a>` : "";
+          groupChatHistory.innerHTML += `<div><strong>${chat.userName}:</strong> ${chat.message}${fileLink}<br><small>${chat.timestamp}</small><hr></div>`;
+        });
+        showSection("group-chat-section");
+      } catch (error) {
+        console.error("Error showing group chat:", error.message);
+        alert("خطا در نمایش چت گروهی");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    document.getElementById("send-group-chat-btn").addEventListener("click", async () => {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند در چت گروهی شرکت کند!");
+        return;
+      }
+      showLoading();
+      const message = document.getElementById("group-chat-input").value.trim();
+      const fileInput = document.getElementById("group-chat-file");
+      const file = fileInput.files[0];
+      const userDoc = await getDoc(doc(db, "users", currentUser));
+      const user = userDoc.exists() ? userDoc.data() : {};
+      const grade = user.grade;
+
+      try {
+        let fileUrl = "";
+        if (file) {
+          const storageRef = ref(storage, `groupChats/${grade}/${file.name}`);
+          await uploadBytes(storageRef, file);
+          fileUrl = await getDownloadURL(storageRef);
+        }
+
+        if (message || fileUrl) {
+          await addDoc(collection(db, "groupChats", grade), {
+            userId: currentUser,
+            userName: `${user.firstName} ${user.lastName}`,
+            message: message || "",
+            fileUrl,
+            timestamp: new Date().toISOString()
+          });
+          document.getElementById("group-chat-input").value = "";
+          fileInput.value = "";
+          showGroupChat();
+        } else {
+          alert("لطفاً پیام یا فایل وارد کنید!");
+        }
+      } catch (error) {
+        console.error("Error sending group chat:", error.message);
+        alert(`خطا در ارسال پیام: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("view-group-chat-btn").addEventListener("click", showGroupChat);
+    document.getElementById("back-to-grade-from-group-chat-btn").addEventListener("click", () => showSection("grade-section"));
+
+    // Chat with coach
+    document.getElementById("send-chat-btn").addEventListener("click", async () => {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند با مربی چت کند!");
+        return;
+      }
+      showLoading();
+      const chatInput = document.getElementById("chat-input").value.trim();
+      if (!chatInput) {
+        alert("لطفاً یک سؤال وارد کنید!");
+        hideLoading();
+        return;
+      }
+      try {
+        const response = await getCoachResponse(chatInput);
+        await addDoc(collection(db, "users", currentUser, "chatHistory"), {
+          question: chatInput,
+          response,
+          timestamp: new Date().toISOString()
+        });
+        updateChatHistory();
+        document.getElementById("chat-input").value = "";
+      } catch (error) {
+        console.error("Error saving chat:", error.message);
+        alert(`خطا در ذخیره چت: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    async function updateChatHistory() {
+      if (isAdmin) {
+        alert("ادمین نمی‌تواند تاریخچه چت را مشاهده کند!");
+        return;
+      }
+      showLoading();
+      const chatHistoryDiv = document.getElementById("chat-history");
+      chatHistoryDiv.innerHTML = "";
+      try {
+        const q = query(collection(db, "users", currentUser, "chatHistory"), orderBy("timestamp"));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          chatHistoryDiv.innerHTML = "<p>هنوز گفتگویی ثبت نشده است.</p>";
+        } else {
+          snapshot.forEach(doc => {
+            const chat = doc.data();
+            chatHistoryDiv.innerHTML += `<div><strong>شما:</strong> ${chat.question}<br><strong>مربی:</strong> ${chat.response}<br><small>${chat.timestamp}</small><hr></div>`;
+          });
+        }
+        showSection("chat-section");
+      } catch (error) {
+        console.error("Error loading chat history:", error.message);
+        chatHistoryDiv.innerHTML = "<p>خطا در بارگذاری تاریخچه چت.</p>";
+      } finally {
+        hideLoading();
+      }
+    }
+
+    document.getElementById("view-chat-btn").addEventListener("click", updateChatHistory);
+    document.getElementById("back-to-grade-from-chat-btn").addEventListener("click", () => showSection("grade-section"));
+
+    // Admin panel
+    async function loadAdminPanel() {
+      if (!isAdmin) {
+        alert("فقط ادمین می‌تواند به پنل ادمین دسترسی داشته باشد!");
+        return;
+      }
+      showLoading();
+      try {
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const adminUsersDiv = document.getElementById("admin-users");
+        adminUsersDiv.innerHTML = "";
+        usersSnapshot.forEach(doc => {
+          const user = doc.data();
+          adminUsersDiv.innerHTML += `<p>${user.firstName} ${user.lastName} (${user.email}) - امتیاز: ${user.points || 0} <button class="delete-user-btn" data-uid="${doc.id}">حذف</button></p>`;
+        });
+        document.querySelectorAll(".delete-user-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const uid = btn.dataset.uid;
+            if (confirm("آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟")) {
+              await deleteDoc(doc(db, "users", uid));
+              loadAdminPanel();
+            }
+          });
+        });
+        showSection("admin-panel-section");
+      } catch (error) {
+        console.error("Error loading admin panel:", error.message);
+        alert("خطا در بارگذاری پنل ادمین");
+      } finally {
+        hideLoading();
+      }
+    }
+
+    document.getElementById("add-mission-btn").addEventListener("click", async () => {
+      if (!isAdmin) return;
+      showLoading();
+      const grade = document.getElementById("admin-grade-select").value;
+      const chapterId = document.getElementById("admin-chapter-select").value;
+      const question = document.getElementById("admin-mission-question").value.trim();
+      const correctAnswer = document.getElementById("admin-mission-answer").value.trim();
+      const options = document.getElementById("admin-mission-options").value.split(",").map(o => o.trim());
+      const points = parseInt(document.getElementById("admin-mission-points").value);
+
+      if (!question || !correctAnswer || options.length !== 4 || !options.includes(correctAnswer) || isNaN(points)) {
+        alert("لطفاً تمام فیلدها را به درستی پر کنید!");
+        hideLoading();
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "dailyMissions", grade, chapterId), {
+          question,
+          correctAnswer,
+          options,
+          topic: chapters[grade].find(c => c.id == chapterId).name,
+          difficulty: 1,
+          points,
+          timestamp: new Date().toISOString()
+        });
+        alert("مأموریت روزانه با موفقیت اضافه شد!");
+        document.getElementById("admin-mission-question").value = "";
+        document.getElementById("admin-mission-answer").value = "";
+        document.getElementById("admin-mission-options").value = "";
+        document.getElementById("admin-mission-points").value = "";
+      } catch (error) {
+        console.error("Error adding mission:", error.message);
+        alert(`خطا در افزودن مأموریت: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("add-challenge-btn").addEventListener("click", async () => {
+      if (!isAdmin) return;
+      showLoading();
+      const grade = document.getElementById("admin-grade-select").value;
+      const chapterId = document.getElementById("admin-chapter-select").value;
+      const question = document.getElementById("admin-challenge-question").value.trim();
+      const correctAnswer = document.getElementById("admin-challenge-answer").value.trim();
+      const options = document.getElementById("admin-challenge-options").value.split(",").map(o => o.trim());
+      const points = parseInt(document.getElementById("admin-challenge-points").value);
+
+      if (!question || !correctAnswer || options.length !== 4 || !options.includes(correctAnswer) || isNaN(points)) {
+        alert("لطفاً تمام فیلدها را به درستی پر کنید!");
+        hideLoading();
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "challenges", grade, chapterId), {
+          question,
+          correctAnswer,
+          options,
+          topic: chapters[grade].find(c => c.id == chapterId).name,
+          difficulty: 3,
+          points,
+          timestamp: new Date().toISOString()
+        });
+        alert("چالش ویژه با موفقیت اضافه شد!");
+        document.getElementById("admin-challenge-question").value = "";
+        document.getElementById("admin-challenge-answer").value = "";
+        document.getElementById("admin-challenge-options").value = "";
+        document.getElementById("admin-challenge-points").value = "";
+      } catch (error) {
+        console.error("Error adding challenge:", error.message);
+        alert(`خطا در افزودن چالش: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById("view-admin-panel-btn").addEventListener("click", loadAdminPanel);
+    document.getElementById("back-to-grade-from-admin-btn").addEventListener("click", () => showSection("admin-panel-section"));
+
+    // Initialize
+    document.getElementById("grade-select").dispatchEvent(new Event("change"));
+    document.getElementById("admin-grade-select").dispatchEvent(new Event("change"));
   </script>
-
 </body>
 </html>
