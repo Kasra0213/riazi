@@ -3,1196 +3,1071 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>  ریاضی دان</title>
+  <title>بازی ریاضی پایه‌های هفتم، هشتم و نهم</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
-  <style>
-    body {
-      font-family: 'Vazir', sans-serif;
-      background: linear-gradient(135deg, #e0e7ff, #a7f3d0);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-    }
-    .container {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 1.5rem;
-      width: 100%;
-      max-width: 600px;
-      margin: 1rem auto;
-      transition: all 0.3s ease;
-    }
-    .admin-container {
-      max-width: 900px;
-    }
-    .btn {
-      transition: transform 0.2s ease, background-color 0.3s ease;
-      border-radius: 0.75rem;
-      padding: 0.75rem 1.5rem;
-      font-weight: bold;
-      width: 100%;
-      text-align: center;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.1);
-    }
-    .input, select {
-      border: 2px solid #e5e7eb;
-      border-radius: 0.75rem;
-      padding: 0.75rem;
-      width: 100%;
-      transition: border-color 0.3s ease;
-    }
-    .input:focus, select:focus {
-      border-color: #3b82f6;
-      outline: none;
-    }
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3b82f6;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .error-message {
-      color: #dc2626;
-      font-size: 0.875rem;
-      margin-top: 0.5rem;
-      text-align: center;
-    }
-    #chat-history {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #e5e7eb;
-      padding: 1rem;
-      background: #f9fafb;
-      border-radius: 0.75rem;
-      word-wrap: break-word;
-    }
-    #chat-history > div {
-      margin-bottom: 1rem;
-    }
-    #chat-history p {
-      margin: 0.5rem 0;
-    }
-    #progress-chart, #admin-progress-chart {
-      max-height: 300px;
-      width: 100%;
-    }
-    @font-face {
-      font-family: 'Vazir';
-      src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
-    }
-    @media (max-width: 640px) {
-      .container {
-        padding: 1rem;
-        margin: 0.5rem;
-      }
-      .btn {
-        padding: 0.5rem 1rem;
-      }
-      .input, select {
-        padding: 0.5rem;
-      }
-      h1, h2 {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
 </head>
-<body>
-  <div id="loading" class="loading hidden">
-    <div class="spinner"></div>
-  </div>
-  <div id="app" class="container mx-auto relative">
-    <header class="flex flex-col sm:flex-row justify-between items-center mb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold text-blue-600">بازی ریاضی</h1>
-      <button id="logout-btn" class="btn bg-red-500 text-white hidden">خروج</button>
-    </header>
-
-    <div id="auth-section" class="bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">ثبت‌نام / ورود</h2>
+<body class="bg-gray-100 font-sans">
+  <div id="app" class="container mx-auto p-4">
+    <!-- صفحه ثبت‌نام و ورود -->
+    <div id="auth-section" class="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">ثبت‌نام / ورود</h2>
       <div id="register-form">
-        <input id="first-name" type="text" placeholder="نام" class="input mb-4">
-        <input id="last-name" type="text" placeholder="نام خانوادگی" class="input mb-4">
-        <select id="grade" class="input mb-4">
+        <input id="first-name" type="text" placeholder="نام" class="w-full p-2 mb-4 border rounded">
+        <input id="last-name" type="text" placeholder="نام خانوادگی" class="w-full p-2 mb-4 border rounded">
+        <select id="grade" class="w-full p-2 mb-4 border rounded">
           <option value="7">پایه هفتم</option>
           <option value="8">پایه هشتم</option>
           <option value="9">پایه نهم</option>
         </select>
-        <input id="email" type="email" placeholder="ایمیل" class="input mb-4">
-        <input id="password" type="password" placeholder="رمز عبور" class="input mb-4">
-        <button id="register-btn" class="btn bg-blue-500 text-white mb-2">ثبت‌نام</button>
+        <input id="email" type="email" placeholder="ایمیل" class="w-full p-2 mb-4 border rounded">
+        <input id="password" type="password" placeholder="رمز عبور" class="w-full p-2 mb-4 border rounded">
+        <button id="register-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ثبت‌نام</button>
       </div>
       <div id="login-form" class="mt-4">
-        <input id="login-email" type="email" placeholder="ایمیل" class="input mb-4">
-        <input id="login-password" type="password" placeholder="رمز عبور" class="input mb-4">
-        <button id="login-btn" class="btn bg-green-500 text-white">ورود</button>
+        <input id="login-email" type="email" placeholder="ایمیل" class="w-full p-2 mb-4 border rounded">
+        <input id="login-password" type="password" placeholder="رمز عبور" class="w-full p-2 mb-4 border rounded">
+        <button id="login-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">ورود</button>
       </div>
-      <p id="auth-error" class="error-message hidden"></p>
     </div>
 
-    <div id="verify-email-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">تأیید ایمیل</h2>
-      <p class="mb-4 text-gray-700">لطفاً ایمیل خود را تأیید کنید. لینک تأیید به ایمیل شما ارسال شده است.</p>
-      <button id="resend-verification-btn" class="btn bg-blue-500 text-white mb-2">ارسال مجدد ایمیل تأیید</button>
-      <button id="check-verification-btn" class="btn bg-green-500 text-white">بررسی وضعیت تأیید</button>
-      <button id="back-to-auth-btn" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
-      <p id="verify-error" class="error-message hidden"></p>
+    <!-- صفحه تأیید ایمیل -->
+    <div id="verify-email-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">تأیید ایمیل</h2>
+      <p class="mb-4">لطفاً ایمیل خود را تأیید کنید. یک لینک تأیید به ایمیل شما ارسال شده است.</p>
+      <button id="resend-verification-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ارسال مجدد ایمیل تأیید</button>
+      <button id="check-verification-btn" class="w-full bg-green-500 text-white p-2 rounded mt-2 hover:bg-green-600">بررسی وضعیت تأیید</button>
     </div>
 
-    <div id="grade-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">انتخاب پایه و فصل</h2>
-      <select id="grade-select" class="input mb-4">
+    <!-- انتخاب پایه و فصل -->
+    <div id="grade-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">انتخاب پایه و فصل</h2>
+      <select id="grade-select" class="w-full p-2 mb-4 border rounded">
         <option value="7">پایه هفتم</option>
         <option value="8">پایه هشتم</option>
         <option value="9">پایه نهم</option>
       </select>
-      <select id="chapter-select" class="input mb-4"></select>
-      <button id="start-quiz-btn" class="btn bg-blue-500 text-white mb-2">شروع آزمون</button>
-      <button id="view-progress-btn" class="btn bg-purple-500 text-white mb-2">مشاهده پیشرفت</button>
-      <button id="view-chat-btn" class="btn bg-teal-500 text-white mb-2">چت با مربی</button>
-      <button id="back-to-auth-from-grade-btn" class="btn bg-gray-500 text-white">بازگشت</button>
+      <select id="chapter-select" class="w-full p-2 mb-4 border rounded"></select>
+      <button id="start-quiz-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">شروع آزمون</button>
+      <button id="view-progress-btn" class="w-full bg-purple-500 text-white p-2 rounded mt-2 hover:bg-purple-600">مشاهده پیشرفت</button>
+      <button id="view-chat-btn" class="w-full bg-teal-500 text-white p-2 rounded mt-2 hover:bg-teal-600">چت با مربی</button>
     </div>
 
-    <div id="quiz-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 id="question-title" class="text-lg sm:text-xl font-bold mb-4 text-blue-600"></h2>
+    <!-- صفحه آزمون -->
+    <div id="quiz-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 id="question-title" class="text-xl font-bold mb-4"></h2>
       <div id="options" class="space-y-2"></div>
       <div id="timer" class="text-red-500 font-bold mt-4"></div>
-      <button id="submit-answer-btn" class="btn bg-blue-500 text-white mt-4">ارسال پاسخ</button>
-      <button id="end-quiz-btn" class="btn bg-red-500 text-white mt-2">پایان آزمون</button>
-      <button id="back-to-grade-from-quiz" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
-      <p id="quiz-error" class="error-message hidden"></p>
+      <button id="submit-answer-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">ارسال پاسخ</button>
+      <button id="end-quiz-btn" class="bg-red-500 text-white p-2 rounded mt-2 hover:bg-red-600">پایان آزمون</button>
     </div>
 
-    <div id="lesson-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">درسنامه</h2>
-      <div id="lesson-content" class="prose text-gray-700"></div>
-      <button id="back-to-grade-btn" class="btn bg-blue-500 text-white mt-4">بازگشت</button>
-      <p id="lesson-error" class="error-message hidden"></p>
+    <!-- صفحه درسنامه -->
+    <div id="lesson-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">درسنامه</h2>
+      <div id="lesson-content" class="prose"></div>
+      <button id="back-to-grade-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
     </div>
 
-    <div id="progress-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">تحلیل عملکرد</h2>
+    <!-- صفحه تحلیل عملکرد -->
+    <div id="progress-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">تحلیل عملکرد</h2>
       <canvas id="progress-chart"></canvas>
-      <button id="back-to-grade-from-progress-btn" class="btn bg-blue-500 text-white mt-4">بازگشت</button>
-      <p id="progress-error" class="error-message hidden"></p>
+      <button id="back-to-grade-from-progress-btn" class="bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600">بازگشت</button>
     </div>
 
-    <div id="chat-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">چت با مربی هوش مصنوعی</h2>
-      <div id="chat-history" class="mb-4"></div>
-      <input id="chat-input" type="text" placeholder="سوال خود را بپرسید..." class="input mb-4">
-      <button id="send-chat-btn" class="btn bg-blue-500 text-white mb-2">ارسال</button>
-      <button id="back-to-grade-from-chat-btn" class="btn bg-blue-500 text-white">بازگشت</button>
-      <p id="chat-error" class="error-message hidden"></p>
-    </div>
-
-    <div id="admin-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md admin-container mx-auto">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">پنل ادمین</h2>
-      <div class="mb-6">
-        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-blue-500">لیست کاربران</h3>
-        <div id="user-list" class="bg-gray-50 p-4 rounded-lg"></div>
-      </div>
-      <div class="mb-6">
-        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-blue-500">جستجوی کاربر</h3>
-        <input id="admin-search-user" type="text" placeholder="ایمیل کاربر را وارد کنید" class="input mb-4">
-        <button id="admin-search-btn" class="btn bg-blue-500 text-white">جستجو</button>
-        <div id="admin-user-details" class="bg-gray-50 p-4 rounded-lg mt-4">
-          <select id="admin-grade-select" class="input mb-4 hidden">
-            <option value="7">پایه هفتم</option>
-            <option value="8">پایه هشتم</option>
-            <option value="9">پایه نهم</option>
-          </select>
-          <canvas id="admin-progress-chart" class="hidden"></canvas>
-          <div id="admin-quiz-history" class="mt-4"></div>
-        </div>
-      </div>
-      <button id="admin-logout-btn" class="btn bg-red-500 text-white mt-4">خروج</button>
-      <button id="back-to-auth-from-admin-btn" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
-      <p id="admin-error" class="error-message hidden"></p>
+    <!-- صفحه چت با مربی -->
+    <div id="chat-section" class="hidden bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-2xl font-bold mb-4 text-center">چت با مربی هوش مصنوعی</h2>
+      <div id="chat-history" class="h-64 overflow-y-auto border p-2 mb-4"></div>
+      <input id="chat-input" type="text" placeholder="سوال خود را بپرسید..." class="w-full p-2 mb-4 border rounded">
+      <button id="send-chat-btn" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">ارسال</button>
+      <button id="back-to-grade-from-chat-btn" class="bg-blue-500 text-white p-2 rounded mt-2 hover:bg-blue-600">بازگشت</button>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, addDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+  import { getFirestore, doc, setDoc, getDoc, getDocs, collection, addDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCvOSxhQUOGXkomupnEAZ3R8VU86aoK_vo",
-      authDomain: "riazi-ea106.firebaseapp.com",
-      projectId: "riazi-ea106",
-      storageBucket: "riazi-ea106.appspot.com",
-      messagingSenderId: "756937494755",
-      appId: "1:756937494755:web:58474eb07ec4f702f9b5d6"
+  const firebaseConfig = {
+    apiKey: "AIzaSyCvOSxhQUOGXkomupnEAZ3R8VU86aoK_vo",
+    authDomain: "riazi-ea106.firebaseapp.com",
+    projectId: "riazi-ea106",
+    storageBucket: "riazi-ea106.appspot.com",
+    messagingSenderId: "756937494755",
+    appId: "1:756937494755:web:58474eb07ec4f702f9b5d6"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    console.log("Firebase initialized successfully");
+
+    const ADMIN_EMAIL = "k.sharafie@gmail.com";
+    const ADMIN_PASSWORD = "admin123";
+    const GAPGPT_API_KEY = "sk-60bWOwKWq2YhffHaCFX1LTWYtonlEJZctcqcqU0ZRPTQ4P4i";
+
+    const chapters = {
+      7: [
+        { id: 2, name: "عددهای صحیح" },
+        { id: 3, name: "جبر و معادله" },
+        { id: 4, name: "هندسه و استدلال" },
+        { id: 5, name: "شمارنده‌ها و اعداد اول" },
+        { id: 6, name: "سطح و حجم" },
+        { id: 7, name: "توان و جذر" },
+        { id: 8, name: "بردار و مختصات" },
+        { id: 9, name: "آمار و احتمال" }
+      ],
+      8: [
+        { id: 1, name: "عدد‌های صحیح و گویا" },
+        { id: 2, name: "عددهای اول" },
+        { id: 3, name: "چند‌ضلعی‌ها" },
+        { id: 4, name: "جبر و معادله" },
+        { id: 5, name: "بردار و مختصات" },
+        { id: 6, name: "مثلث" },
+        { id: 7, name: "توان و جذر" },
+        { id: 8, name: "آمار و احتمال" },
+        { id: 9, name: "دایره" }
+      ],
+      9: [
+        { id: 1, name: "مجموعه‌ها" },
+        { id: 2, name: "عددهای حقیقی" },
+        { id: 3, name: "استدلال و اثبات در هندسه" },
+        { id: 4, name: "توان و ریشه" },
+        { id: 5, name: "عبارت‌های جبری" },
+        { id: 6, name: "خط و معادله‌های خطی" },
+        { id: 7, name: "عبارت‌های گویا" },
+        { id: 8, name: "حجم و مساحت" }
+      ]
     };
 
-    try {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      console.log("Firebase initialized successfully");
+    const topics = {
+      7: {
+        2: ["جمع و تفریق اعداد صحیح", "ضرب و تقسیم اعداد صحیح", "ترتیب عملیات", "خواص اعداد صحیح"],
+        3: ["معادلات خطی ساده", "عبارت‌های جبری", "ساده‌سازی عبارات", "معادلات چندمرحله‌ای"],
+        4: ["زاویه‌ها و خطوط", "خواص مثلث", "تشابه مثلث‌ها", "قضیه تالس"],
+        5: ["شمارنده‌ها", "تجزیه اعداد به عوامل اول", "ب.م.م", "ک.م.م"],
+        6: ["مساحت و محیط اشکال", "حجم اشکال سه‌بعدی", "مساحت سطح", "اشکال هندسی"],
+        7: ["قوانین توان", "ریشه‌های مربعی", "قوانین جذر", "عبارات توان‌دار"],
+        8: ["مختصات دکارتی", "بردارهای اولیه", "انتقال و تقارن", "مختصات قطبی"],
+        9: ["میانگین و میانه", "احتمال ساده", "نمودارهای آماری", "تفسیر داده‌ها"]
+      },
+      8: {
+        1: ["عملیات با اعداد گویا", "تبدیل کسر به اعشار", "مقایسه اعداد گویا", "خواص اعداد گویا"],
+        2: ["تشخیص اعداد اول", "تجزیه به عوامل اول", "ب.م.م و ک.م.م", "خواص اعداد اول"],
+        3: ["خواص چندضلعی‌ها", "محیط و مساحت چندضلعی‌ها", "تقارن در چندضلعی‌ها", "چندضلعی‌های منتظم"],
+        4: ["معادلات خطی", "عبارت‌های جبری پیچیده‌تر", "معادلات چندمتغیره", "ساده‌سازی پیشرفته"],
+        5: ["مختصات و انتقال", "بردارهای پیشرفته", "تبدیلات هندسی", "مختصات پیشرفته"],
+        6: ["خواص مثلث", "قضیه فیثاغورس", "تشابه مثلث‌ها", "ارتفاع و خطوط میانی"],
+        7: ["قوانین توان پیشرفته", "ریشه‌های nام", "عبارات توان‌دار پیچیده", "ساده‌سازی جذر"],
+        8: ["نمودارهای آماری", "احتمال شرطی", "تفسیر داده‌های آماری", "احتمال ترکیبی"],
+        9: ["خواص دایره", "طول کمان و مساحت قطاع", "زوایای محیطی", "خطوط مماس"]
+      },
+      9: {
+        1: ["عملگرهای مجموعه", "نمودار ون", "قوانین دمورگان", "مجموعه‌های پیچیده"],
+        2: ["عملیات با اعداد حقیقی", "اعداد گنگ", "مقایسه اعداد", "خواص اعداد حقیقی"],
+        3: ["استدلال هندسی", "اثبات‌های ساده", "قضایای هندسی", "برهان خلف"],
+        4: ["قوانین توان و ریشه", "ساده‌سازی عبارات توان‌دار", "عبارات جذری", "خواص ریشه‌ها"],
+        5: ["فاکتورگیری", "ساده‌سازی عبارات جبری", "معادلات جبری", "عبارت‌های چندجمله‌ای"],
+        6: ["معادله خط", "شیب و عرض از مبدا", "معادلات خطوط موازی", "فاصله بین نقاط"],
+        7: ["ساده‌سازی عبارات گویا", "عملیات با کسرهای جبری", "معادلات گویا", "دامنه عبارات"],
+        8: ["حجم اشکال سه‌بعدی", "مساحت سطح", "اشکال هندسی پیشرفته", "فرمول‌های حجم"]
+      }
+    };
 
-      const ADMIN_EMAIL = "k.sharafie@gmail.com";
-      const ADMIN_PASSWORD = "admin123";
+    function showLoading(show) {
+      document.getElementById("loading").classList.toggle("hidden", !show);
+    }
 
-      const chapters = {
-        7: [
-          { id: 2, name: "عددهای صحیح" },
-          { id: 3, name: "جبر و معادله" },
-          { id: 4, name: "هندسه و استدلال" },
-          { id: 5, name: "شمارنده‌ها و اعداد اول" },
-          { id: 6, name: "سطح و حجم" },
-          { id: 7, name: "توان و جذر" },
-          { id: 8, name: "بردار و مختصات" },
-          { id: 9, name: "آمار و احتمال" }
-        ],
-        8: [
-          { id: 1, name: "عدد‌های صحیح و گویا" },
-          { id: 2, name: "عددهای اول" },
-          { id: 3, name: "چند‌ضلعی‌ها" },
-          { id: 4, name: "جبر و معادله" },
-          { id: 5, name: "بردار و مختصات" },
-          { id: 6, name: "مثلث" },
-          { id: 7, name: "توان و جذر" },
-          { id: 8, name: "آمار و احتمال" },
-          { id: 9, name: "دایره" }
-        ],
-        9: [
-          { id: 1, name: "مجموعه‌ها" },
-          { id: 2, name: "عددهای حقیقی" },
-          { id: 3, name: "استدلال و اثبات در هندسه" },
-          { id: 4, name: "توان و ریشه" },
-          { id: 5, name: "عبارت‌های جبری" },
-          { id: 6, name: "خط و معادله‌های خطی" },
-          { id: 7, name: "عبارت‌های گویا" },
-          { id: 8, name: "حجم و مساحت" }
-        ]
-      };
+    function showError(sectionId, message) {
+      const errorElement = document.getElementById(`${sectionId}-error`);
+      errorElement.textContent = message || "لطفاً دوباره تلاش کنید.";
+      errorElement.classList.remove("hidden");
+      setTimeout(() => errorElement.classList.add("hidden"), 5000);
+    }
 
-      const topics = {
-        7: {
-          2: ["جمع و تفریق اعداد صحیح", "ضرب و تقسیم اعداد صحیح", "ترتیب عملیات", "خواص اعداد صحیح"],
-          3: ["معادلات خطی ساده", "عبارت‌های جبری", "ساده‌سازی عبارات", "معادلات چندمرحله‌ای"],
-          4: ["زاویه‌ها و خطوط", "خواص مثلث", "تشابه مثلث‌ها", "قضیه تالس"],
-          5: ["شمارنده‌ها", "تجزیه اعداد به عوامل اول", "ب.م.م", "ک.م.م"],
-          6: ["مساحت و محیط اشکال", "حجم اشکال سه‌بعدی", "مساحت سطح", "اشکال هندسی"],
-          7: ["قوانین توان", "ریشه‌های مربعی", "قوانین جذر", "عبارات توان‌دار"],
-          8: ["مختصات دکارتی", "بردارهای اولیه", "انتقال و تقارن", "مختصات قطبی"],
-          9: ["میانگین و میانه", "احتمال ساده", "نمودارهای آماری", "تفسیر داده‌ها"]
-        },
-        8: {
-          1: ["عملیات با اعداد گویا", "تبدیل کسر به اعشار", "مقایسه اعداد گویا", "خواص اعداد گویا"],
-          2: ["تشخیص اعداد اول", "تجزیه به عوامل اول", "ب.م.م و ک.م.م", "خواص اعداد اول"],
-          3: ["خواص چندضلعی‌ها", "محیط و مساحت چندضلعی‌ها", "تقارن در چندضلعی‌ها", "چندضلعی‌های منتظم"],
-          4: ["معادلات خطی", "عبارت‌های جبری پیچیده‌تر", "معادلات چندمتغیره", "ساده‌سازی پیشرفته"],
-          5: ["مختصات و انتقال", "بردارهای پیشرفته", "تبدیلات هندسی", "مختصات پیشرفته"],
-          6: ["خواص مثلث", "قضیه فیثاغورس", "تشابه مثلث‌ها", "ارتفاع و خطوط میانی"],
-          7: ["قوانین توان پیشرفته", "ریشه‌های nام", "عبارات توان‌دار پیچیده", "ساده‌سازی جذر"],
-          8: ["نمودارهای آماری", "احتمال شرطی", "تفسیر داده‌های آماری", "احتمال ترکیبی"],
-          9: ["خواص دایره", "طول کمان و مساحت قطاع", "زوایای محیطی", "خطوط مماس"]
-        },
-        9: {
-          1: ["عملگرهای مجموعه", "نمودار ون", "قوانین دمورگان", "مجموعه‌های پیچیده"],
-          2: ["عملیات با اعداد حقیقی", "اعداد گنگ", "مقایسه اعداد", "خواص اعداد حقیقی"],
-          3: ["استدلال هندسی", "اثبات‌های ساده", "قضایای هندسی", "برهان خلف"],
-          4: ["قوانین توان و ریشه", "ساده‌سازی عبارات توان‌دار", "عبارات جذری", "خواص ریشه‌ها"],
-          5: ["فاکتورگیری", "ساده‌سازی عبارات جبری", "معادلات جبری", "عبارت‌های چندجمله‌ای"],
-          6: ["معادله خط", "شیب و عرض از مبدا", "معادلات خطوط موازی", "فاصله بین نقاط"],
-          7: ["ساده‌سازی عبارات گویا", "عملیات با کسرهای جبری", "معادلات گویا", "دامنه عبارات"],
-          8: ["حجم اشکال سه‌بعدی", "مساحت سطح", "اشکال هندسی پیشرفته", "فرمول‌های حجم"]
-        }
-      };
+    function showSection(sectionId) {
+      document.querySelectorAll("#app > div").forEach(div => div.classList.add("hidden"));
+      document.getElementById(sectionId).classList.remove("hidden");
+      document.getElementById("logout-btn").classList.toggle("hidden", sectionId === "auth-section");
+      if (sectionId === "quiz-section" || sectionId === "lesson-section" || sectionId === "chat-section" || sectionId === "admin-section") {
+        setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+      }
+    }
 
-      function showLoading(show) {
-        document.getElementById("loading").classList.toggle("hidden", !show);
+    function sanitizeLatex(text) {
+      if (!text) return "";
+      return text
+        .replace(/\\{2,}/g, '\\')
+        .replace(/\\\(.*?\\\)/g, match => match.replace(/\s+/g, ' ').trim())
+        .replace(/\\\[.*?\\\]/g, match => match.replace(/\s+/g, ' ').trim())
+        .鉄شده_آخرین .replace(/\\([a-zA-Z]+)/g, (match, cmd) => {
+          const validCommands = ['frac', 'sqrt', 'sum', 'int', 'sin', 'cos', 'tan', 'log', 'ln', 'lim'];
+          return validCommands.includes(cmd) ? match : `\\text{${cmd}}`;
+        })
+        .replace(/[^\x20-\x7E\\{}\[\]()^_+\-*/=<>|]/g, '')
+        .replace(/\\([{}])/g, '$1');
+    }
+
+    function preprocessJsonText(text) {
+      return text
+        .replace(/\\{2,}/g, '\\')
+        .replace(/([^\\])"/g, '$1\\"')
+        .replace(/\\([^\\bfnrtu])/g, '$1')
+        .replace(/\n/g, '\\n')
+        .replace(/\t/g, '\\t');
+    }
+
+    let questionCache = new Map();
+    async function generateQuestion(grade, chapterId, difficulty, retries = 5, baseDelay = 500) {
+      showLoading(true);
+      const topic = topics[grade][chapterId][Math.floor(Math.random() * topics[grade][chapterId].length)];
+      const cacheKey = `${grade}-${chapterId}-${difficulty}-${topic}`;
+      if (questionCache.has(cacheKey) && questionCache.get(cacheKey).length > 0) {
+        const cachedQuestions = questionCache.get(cacheKey);
+        showLoading(false);
+        return cachedQuestions.shift();
       }
 
-      function showError(sectionId, message) {
-        const errorElement = document.getElementById(`${sectionId}-error`);
-        errorElement.textContent = message || "لطفاً دوباره تلاش کنید.";
-        errorElement.classList.remove("hidden");
-        setTimeout(() => errorElement.classList.add("hidden"), 5000);
-      }
+      const prompt = `Generate a unique math question for grade ${grade}, chapter "${chapters
 
-      function showSection(sectionId) {
-        document.querySelectorAll("#app > div").forEach(div => div.classList.add("hidden"));
-        document.getElementById(sectionId).classList.remove("hidden");
-        document.getElementById("logout-btn").classList.toggle("hidden", sectionId === "auth-section");
-        if (sectionId === "quiz-section" || sectionId === "lesson-section" || sectionId === "chat-section" || sectionId === "admin-section") {
-          setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-        }
-      }
+[grade].find(c => c.id == chapterId).name}", topic: "${topic}", difficulty level: ${difficulty} (1 for easy, 2 for medium, 3 for hard). Provide the question as a clear, concise text string. Use LaTeX for mathematical expressions within the question text, enclosed in \\( and \\). Options must be plain text or numbers without LaTeX. Return a valid JSON object with: "question" (text with LaTeX for math), "correctAnswer" (string or number), and "options" (array of 4 strings or numbers). Ensure the correct answer is one of the options, options are unique, and JSON is valid without escaped characters causing parse errors. Example: {"question": "حل کنید: \\(2x + 3 = 7\\). مقدار \\(x\\) چیست؟", "correctAnswer": "2", "options": ["1", "2", "3", "4"]}`;
 
-      function sanitizeLatex(text) {
-        if (!text) return "";
-        return text
-          .replace(/\\{2,}/g, '\\') // حذف بک‌اسلش‌های اضافی
-          .replace(/\\\(.*?\\\)/g, match => match.replace(/\s+/g, ' ').trim())
-          .replace(/\\\[.*?\\\]/g, match => match.replace(/\s+/g, ' ').trim())
-          .replace(/\\([a-zA-Z]+)/g, (match, cmd) => {
-            const validCommands = ['frac', 'sqrt', 'sum', 'int', 'sin', 'cos', 'tan', 'log', 'ln', 'lim'];
-            return validCommands.includes(cmd) ? match : `\\text{${cmd}}`;
-          })
-          .replace(/[^\x20-\x7E\\{}\[\]()^_+\-*/=<>|]/g, '')
-          .replace(/\\([{}])/g, '$1'); // حذف بک‌اسلش‌های غیرضروری قبل از {}
-      }
-
-      function preprocessJsonText(text) {
-        return text
-          .replace(/\\{2,}/g, '\\') // حذف بک‌اسلش‌های اضافی
-          .replace(/([^\\])"/g, '$1\\"') // فرمت صحیح نقل‌قول‌ها
-          .replace(/\\([^\\bfnrtu])/g, '$1') // حذف بک‌اسلش‌های غیرمجاز
-          .replace(/\n/g, '\\n') // تبدیل خطوط جدید به فرمت JSON
-          .replace(/\t/g, '\\t'); // تبدیل تب‌ها به فرمت JSON
-      }
-
-      let questionCache = new Map();
-      async function generateQuestion(grade, chapterId, difficulty, retries = 5, baseDelay = 500) {
-        showLoading(true);
-        const topic = topics[grade][chapterId][Math.floor(Math.random() * topics[grade][chapterId].length)];
-        const cacheKey = `${grade}-${chapterId}-${difficulty}-${topic}`;
-        if (questionCache.has(cacheKey) && questionCache.get(cacheKey).length > 0) {
-          const cachedQuestions = questionCache.get(cacheKey);
-          showLoading(false);
-          return cachedQuestions.shift();
-        }
-
-        const prompt = `Generate a unique math question for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", topic: "${topic}", difficulty level: ${difficulty} (1 for easy, 2 for medium, 3 for hard). Provide the question as a clear, concise text string. Use LaTeX for mathematical expressions within the question text, enclosed in \\( and \\). Options must be plain text or numbers without LaTeX. Return a valid JSON object with: "question" (text with LaTeX for math), "correctAnswer" (string or number), and "options" (array of 4 strings or numbers). Ensure the correct answer is one of the options, options are unique, and JSON is valid without escaped characters causing parse errors. Example: {"question": "حل کنید: \\(2x + 3 = 7\\). مقدار \\(x\\) چیست؟", "correctAnswer": "2", "options": ["1", "2", "3", "4"]}`;
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const response = await fetch("https://api.gapgpt.app/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${GAPGPT_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 500,
+              temperature: 0.7
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data.choices || !data.choices[0]?.message?.content) {
+            throw new Error("ساختار پاسخ از GapGPT نامعتبر است");
+          }
+          const rawText = data.choices[0].message.content.replace(/```json\n|\n```/g, '');
+          const processedText = preprocessJsonText(rawText);
+          let result;
           try {
-            const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyARVSa3B8_DcPOTM5lOoib3NToF4jOtC30", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            const data = await response.json();
-            if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-              throw new Error("ساختار پاسخ از API Gemini نامعتبر است");
-            }
-            const rawText = data.candidates[0].content.parts[0].text.replace(/```json\n|\n```/g, '');
-            const processedText = preprocessJsonText(rawText);
-            let result;
-            try {
-              result = JSON.parse(processedText);
-            } catch (parseError) {
-              console.error(`تلاش ${attempt} برای تولید سؤال ناموفق بود: JSON.parse error:`, parseError.message);
-              throw parseError;
-            }
-            if (!result.question || !result.correctAnswer || !Array.isArray(result.options) || result.options.length !== 4 || !result.options.every(opt => typeof opt === 'string' || typeof opt === 'number') || !result.options.includes(result.correctAnswer)) {
-              throw new Error("فرمت سؤال نامعتبر است");
-            }
-            const question = {
-              text: sanitizeLatex(result.question),
-              correctAnswer: String(result.correctAnswer),
-              options: result.options.map(String),
+            result = JSON.parse(processedText);
+          } catch (parseError) {
+            console.error(`تلاش ${attempt} برای تولید سؤال ناموفق بود: JSON.parse error:`, parseError.message);
+            throw parseError;
+          }
+          if (!result.question || !result.correctAnswer || !Array.isArray(result.options) || result.options.length !== 4 || !result.options.every(opt => typeof opt === 'string' || typeof opt === 'number') || !result.options.includes(result.correctAnswer)) {
+            throw new Error("فرمت سؤال نامعتبر است");
+          }
+          const question = {
+            text: sanitizeLatex(result.question),
+            correctAnswer: String(result.correctAnswer),
+            options: result.options.map(String),
+            topic,
+            difficulty
+          };
+          if (!questionCache.has(cacheKey)) {
+            questionCache.set(cacheKey, []);
+          }
+          questionCache.get(cacheKey).push({ ...question });
+          showLoading(false);
+          return question;
+        } catch (error) {
+          console.error(`تلاش ${attempt} برای تولید سؤال ناموفق بود:`, error.message);
+          if (attempt === retries) {
+            const fallbackQuestion = {
+              text: `حل کنید: \\(${difficulty}x + ${difficulty} = ${difficulty * 2}\\). مقدار \\(x\\) چیست؟`,
+              correctAnswer: "1",
+              options: ["0", "1", "2", "3"],
               topic,
               difficulty
             };
             if (!questionCache.has(cacheKey)) {
               questionCache.set(cacheKey, []);
             }
-            questionCache.get(cacheKey).push({ ...question });
+            questionCache.get(cacheKey).push({ ...fallbackQuestion });
+            showError("quiz", "مشکلی در تولید سؤال پیش آمد. از سؤال پیش‌فرض استفاده شد.");
             showLoading(false);
-            return question;
-          } catch (error) {
-            console.error(`تلاش ${attempt} برای تولید سؤال ناموفق بود:`, error.message);
-            if (attempt === retries) {
-              const fallbackQuestion = {
-                text: `حل کنید: \\(${difficulty}x + ${difficulty} = ${difficulty * 2}\\). مقدار \\(x\\) چیست؟`,
-                correctAnswer: "1",
-                options: ["0", "1", "2", "3"],
-                topic,
-                difficulty
-              };
-              if (!questionCache.has(cacheKey)) {
-                questionCache.set(cacheKey, []);
-              }
-              questionCache.get(cacheKey).push({ ...fallbackQuestion });
-              showError("quiz", "مشکلی در تولید سؤال پیش آمد. از سؤال پیش‌فرض استفاده شد.");
-              showLoading(false);
-              return fallbackQuestion;
-            }
-            await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
+            return fallbackQuestion;
           }
-        }
-        showLoading(false);
-        return null;
-      }
-
-      async function generateLesson(grade, chapterId, userAnswers, retries = 5, baseDelay = 500) {
-        showLoading(true);
-        const incorrectTopics = userAnswers.filter(a => !a.isCorrect).map(a => a.topic).join(", ") || "هیچ اشتباه";
-        const prompt = `Generate a detailed lesson in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", focusing on topics where the user answered incorrectly: ${incorrectTopics}. Include clear explanations for correct and incorrect answers: ${JSON.stringify(userAnswers)}. Use LaTeX for algebraic expressions with \\( and \\) for inline math and \\[ and \\] for display math. Format the response as clean HTML with structured sections (h3, p, ul, li) and examples. Ensure LaTeX is properly formatted and no invalid characters interfere with rendering. Include a specific example solving the expression \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\) step-by-step in a dedicated section. Example format: <h3>موضوع</h3><p>توضیح...</p><ul><li>مثال...</li></ul>`;
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
-          try {
-            const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyARVSa3B8_DcPOTM5lOoib3NToF4jOtC30", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            const data = await response.json();
-            if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-              throw new Error("ساختار پاسخ از API Gemini نامعتبر است");
-            }
-            const lessonContent = sanitizeLatex(data.candidates[0].content.parts[0].text.replace(/```html\n|\n```/g, ''));
-            document.getElementById("lesson-content").innerHTML = lessonContent;
-            setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-            showLoading(false);
-            return lessonContent;
-          } catch (error) {
-            console.error(`تلاش ${attempt} برای تولید درسنامه ناموفق بود:`, error.message);
-            if (attempt === retries) {
-              const fallbackLesson = `
-                <h3>درسنامه برای پایه ${grade}، فصل ${chapters[grade].find(c => c.id == chapterId).name}</h3>
-                <p>لطفاً روی موضوعات زیر تمرکز کنید: ${incorrectTopics}</p>
-                <h4>مثال: ساده‌سازی عبارت \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\)</h4>
-                <p>حل گام به گام:</p>
-                <ul>
-                  <li>ابتدا عبارت داخل پرانتز را ساده کنیم: \\((2a^2b^3)^2 = 2^2 (a^2)^2 (b^3)^2 = 4a^4b^6\\)</li>
-                  <li>حال عبارت به صورت \\(\\frac{3a^4b^{-2} \cdot 4a^4b^6}{6a^3b^5}\\) است.</li>
-                  <li>ضرایب را ساده کنیم: \\(\\frac{3 \cdot 4}{6} = \frac{12}{6} = 2\\)</li>
-                  <li>برای متغیر \\(a\\): \\(a^4 \cdot a^4 / a^3 = a^{4+4-3} = a^5\\)</li>
-                  <li>برای متغیر \\(b\\): \\(b^{-2} \cdot b^6 / b^5 = b^{-2+6-5} = b^{-1} = \frac{1}{b}\\)</li>
-                  <li>نتیجه نهایی: \\(2a^5 \cdot \frac{1}{b} = \frac{2a^5}{b}\\)</li>
-                </ul>
-                <p><strong>پاسخ نهایی: \\(\\frac{2a^5}{b}\\)</strong></p>`;
-              document.getElementById("lesson-content").innerHTML = sanitizeLatex(fallbackLesson);
-              setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-              const errorMessage = error.message.includes("429") ? "سرویس موقتاً شلوغ است. لطفاً کمی بعد تلاش کنید." : "لطفاً دوباره تلاش کنید.";
-              showError("lesson", errorMessage);
-              showLoading(false);
-              return fallbackLesson;
-            }
-            await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
-          }
-        }
-        showLoading(false);
-        return null;
-      }
-
-      async function getCoachResponse(question, retries = 5, baseDelay = 500) {
-        showLoading(true);
-        const prompt = `You are a math coach for grades 7-9. Answer the following question in Persian: "${question}". Provide a clear and educational response in HTML format with structured sections (h3, p, ul, li). Use LaTeX for mathematical expressions with \\( and \\) for inline math and \\[ and \\] for display math. Ensure LaTeX is properly formatted and no invalid characters interfere with rendering. Example format: <h3>پاسخ</h3><p>توضیح...</p><ul><li>مثال...</li></ul>`;
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
-          try {
-            const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyARVSa3B8_DcPOTM5lOoib3NToF4jOtC30", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            if (!response.ok) {
-              throw new Error(`HTTP error: ${response.status}`);
-            }
-            const data = await response.json();
-            if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-              throw new Error("ساختار پاسخ از API Gemini نامعتبر است");
-            }
-            const responseText = sanitizeLatex(data.candidates[0].content.parts[0].text.replace(/```html\n|\n```/g, ''));
-            if (!responseText.trim()) {
-              throw new Error("پاسخ خالی از API Gemini");
-            }
-            const chatHistoryDiv = document.getElementById("chat-history");
-            chatHistoryDiv.innerHTML = `
-              <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "<").replace(/>/g, ">")}</p>
-                <p><strong class="text-green-600">مربی:</strong> ${responseText}</p>
-                <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
-              </div>` + chatHistoryDiv.innerHTML;
-            chatHistoryDiv.scrollTop = 0;
-            setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-            showLoading(false);
-            return responseText;
-          } catch (error) {
-            console.error(`تلاش ${attempt} برای دریافت پاسخ مربی ناموفق بود:`, error.message);
-            if (attempt === retries) {
-              const errorMessage = error.message.includes("429") ? "سرویس موقتاً شلوغ است. لطفاً کمی بعد تلاش کنید." : "لطفاً دوباره تلاش کنید.";
-              showError("chat", errorMessage);
-              showLoading(false);
-              return `<p>پاسخ به سؤال شما: "${question.replace(/</g, "<").replace(/>/g, ">")}"<br>متأسفانه در حال حاضر نمی‌توانیم پاسخ دهیم. لطفاً دوباره تلاش کنید.</p>`;
-            }
-            await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
-          }
-        }
-        showLoading(false);
-        return null;
-      }
-
-      let currentUser = null;
-      let isAdmin = false;
-      onAuthStateChanged(auth, async user => {
-        showLoading(true);
-        try {
-          if (user) {
-            currentUser = user.uid;
-            isAdmin = user.email === ADMIN_EMAIL;
-            document.getElementById("logout-btn").classList.remove("hidden");
-            if (!user.emailVerified && !isAdmin) {
-              showSection("verify-email-section");
-            } else if (isAdmin) {
-              showSection("admin-section");
-              await loadAdminPanel();
-            } else {
-              showSection("grade-section");
-            }
-          } else {
-            currentUser = null;
-            isAdmin = false;
-            showSection("auth-section");
-          }
-        } catch (error) {
-          console.error("خطا در بررسی وضعیت احراز هویت:", error.message);
-          showError("auth", "مشکلی در بررسی وضعیت کاربر پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("register-btn").addEventListener("click", async () => {
-        showLoading(true);
-        const firstName = document.getElementById("first-name").value.trim();
-        const lastName = document.getElementById("last-name").value.trim();
-        const grade = document.getElementById("grade").value;
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-
-        if (!firstName || !lastName || !grade || !email || !password) {
-          showError("auth", "لطفاً تمام فیلدها را پر کنید!");
-          showLoading(false);
-          return;
-        }
-        if (password.length < 6) {
-          showError("auth", "رمز عبور باید حداقل ۶ کاراکتر باشد!");
-          showLoading(false);
-          return;
-        }
-
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          await sendEmailVerification(user);
-          await setDoc(doc(db, "users", user.uid), {
-            firstName,
-            lastName,
-            grade,
-            email,
-            createdAt: new Date().toISOString(),
-            isAdmin: email === ADMIN_EMAIL
-          });
-          alert("ثبت‌نام با موفقیت انجام شد! لطفاً ایمیل خود را تأیید کنید.");
-          showSection("verify-email-section");
-        } catch (error) {
-          console.error("خطا در ثبت‌نام:", error.message);
-          let errorMessage = "مشکلی در ثبت‌نام پیش آمد.";
-          if (error.code === "auth/email-already-in-use") {
-            errorMessage = "این ایمیل قبلاً ثبت شده است.";
-          } else if (error.code === "auth/invalid-email") {
-            errorMessage = "ایمیل واردشده معتبر نیست.";
-          } else if (error.code === "auth/weak-password") {
-            errorMessage = "رمز عبور خیلی ضعیف است.";
-          }
-          showError("auth", errorMessage);
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("login-btn").addEventListener("click", async () => {
-        showLoading(true);
-        const email = document.getElementById("login-email").value.trim();
-        const password = document.getElementById("login-password").value;
-
-        if (!email || !password) {
-          showError("auth", "لطفاً ایمیل و رمز عبور را وارد کنید!");
-          showLoading(false);
-          return;
-        }
-
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-          console.error("خطا در ورود:", error.message);
-          let errorMessage = "مشکلی در ورود پیش آمد.";
-          if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
-            errorMessage = "ایمیل یا رمز عبور اشتباه است.";
-          } else if (error.code === "auth/invalid-email") {
-            errorMessage = "ایمیل واردشده معتبر نیست.";
-          } else if (error.code === "auth/too-many-requests") {
-            errorMessage = "تلاش‌های زیادی انجام شده است. لطفاً بعداً تلاش کنید.";
-          }
-          showError("auth", errorMessage);
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("logout-btn").addEventListener("click", async () => {
-        showLoading(true);
-        try {
-          await signOut(auth);
-          showSection("auth-section");
-        } catch (error) {
-          console.error("خطا در خروج:", error.message);
-          showError("auth", "مشکلی در خروج پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("resend-verification-btn").addEventListener("click", async () => {
-        showLoading(true);
-        if (!auth.currentUser) {
-          showError("verify", "لطفاً ابتدا وارد شوید.");
-          showSection("auth-section");
-          showLoading(false);
-          return;
-        }
-        try {
-          await sendEmailVerification(auth.currentUser);
-          alert("ایمیل تأیید مجدداً ارسال شد!");
-        } catch (error) {
-          console.error("خطا در ارسال مجدد ایمیل تأیید:", error.message);
-          showError("verify", "مشکلی در ارسال ایمیل تأیید پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("check-verification-btn").addEventListener("click", async () => {
-        showLoading(true);
-        if (!auth.currentUser) {
-          showError("verify", "لطفاً ابتدا وارد شوید.");
-          showSection("auth-section");
-          showLoading(false);
-          return;
-        }
-        try {
-          await auth.currentUser.reload();
-          if (auth.currentUser.emailVerified) {
-            showSection("grade-section");
-          } else {
-            showError("verify", "ایمیل شما هنوز تأیید نشده است!");
-          }
-        } catch (error) {
-          console.error("خطا در بررسی تأیید ایمیل:", error.message);
-          showError("verify", "مشکلی در بررسی وضعیت تأیید پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("grade-select").addEventListener("change", () => {
-        const grade = document.getElementById("grade-select").value;
-        const chapterSelect = document.getElementById("chapter-select");
-        chapterSelect.innerHTML = "";
-        chapters[grade].forEach(chapter => {
-          const option = document.createElement("option");
-          option.value = chapter.id;
-          option.textContent = chapter.name;
-          chapterSelect.appendChild(option);
-        });
-      });
-
-      let currentQuestions = [];
-      let currentQuestionIndex = 0;
-      let userAnswers = [];
-      let timerInterval;
-      document.getElementById("start-quiz-btn").addEventListener("click", async () => {
-        showLoading(true);
-        questionCache.clear();
-        const grade = document.getElementById("grade-select").value;
-        const chapterId = document.getElementById("chapter-select").value;
-        currentQuestions = [];
-        try {
-          const questionPromises = Array.from({ length: 3 }, (_, i) => {
-            const difficulty = (i % 3) + 1;
-            return generateQuestion(grade, chapterId, difficulty);
-          });
-          const questions = await Promise.all(questionPromises);
-          currentQuestions = questions.filter(q => q !== null);
-          if (currentQuestions.length === 0) {
-            showError("quiz", "لطفاً دوباره تلاش کنید.");
-            showLoading(false);
-            return;
-          }
-          currentQuestionIndex = 0;
-          userAnswers = [];
-          showQuestion();
-          showSection("quiz-section");
-        } catch (error) {
-          console.error("خطا در شروع آزمون:", error.message);
-          showError("quiz", "مشکلی در شروع آزمون پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      function showQuestion() {
-        const question = currentQuestions[currentQuestionIndex];
-        document.getElementById("question-title").innerHTML = sanitizeLatex(question.text);
-        const optionsDiv = document.getElementById("options");
-        optionsDiv.innerHTML = "";
-        question.options.forEach(option => {
-          const button = document.createElement("button");
-          button.textContent = String(option); // گزینه‌ها به‌صورت متنی ساده
-          button.classList.add("w-full", "p-2", "border", "rounded", "hover:bg-gray-200", "transition", "btn");
-          button.addEventListener("click", () => {
-            document.querySelectorAll("#options button").forEach(btn => btn.classList.remove("bg-blue-200"));
-            button.classList.add("bg-blue-200");
-          });
-          optionsDiv.appendChild(button);
-        });
-        setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-
-        const timeLimit = question.difficulty === 1 ? 20 : question.difficulty === 2 ? 30 : 45;
-        let timeLeft = timeLimit;
-        document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-          timeLeft--;
-          document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
-          if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            submitAnswer(null);
-          }
-        }, 1000);
-      }
-
-      document.getElementById("submit-answer-btn").addEventListener("click", () => {
-        const selectedButton = document.querySelector("#options button.bg-blue-200");
-        const selectedAnswer = selectedButton ? selectedButton.textContent : null;
-        submitAnswer(selectedAnswer);
-      });
-
-      function submitAnswer(selectedAnswer) {
-        clearInterval(timerInterval);
-        const question = currentQuestions[currentQuestionIndex];
-        const isCorrect = selectedAnswer === question.correctAnswer;
-        userAnswers.push({
-          question: question.text,
-          selected: selectedAnswer,
-          correct: question.correctAnswer,
-          isCorrect,
-          topic: question.topic
-        });
-
-        currentQuestionIndex++;
-        if (currentQuestionIndex < currentQuestions.length) {
-          showQuestion();
-        } else {
-          endQuiz();
+          await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
         }
       }
+      showLoading(false);
+      return null;
+    }
 
-      document.getElementById("end-quiz-btn").addEventListener("click", endQuiz);
+    async function generateLesson(grade, chapterId, userAnswers, retries = 5, baseDelay = 500) {
+      showLoading(true);
+      const incorrectTopics = userAnswers.filter(a => !a.isCorrect).map(a => a.topic).join(", ") || "هیچ اشتباه";
+      const prompt = `Generate a detailed lesson in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", focusing on topics where the user answered incorrectly: ${incorrectTopics}. Include clear explanations for correct and incorrect answers: ${JSON.stringify(userAnswers)}. Use LaTeX for algebraic expressions with \\( and \\) for inline math and \\[ and \\] for display math. Format the response as clean HTML with structured sections (h3, p, ul, li) and examples. Ensure LaTeX is properly formatted and no invalid characters interfere with rendering. Include a specific example solving the expression \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\) step-by-step in a dedicated section. Example format: <h3>موضوع</h3><p>توضیح...</p><ul><li>مثال...</li></ul>`;
 
-      async function endQuiz() {
-        showLoading(true);
-        clearInterval(timerInterval);
-        const grade = document.getElementById("grade-select").value;
-        const chapterId = document.getElementById("chapter-select").value;
-        const correctCount = userAnswers.filter(a => a.isCorrect).length;
-        const completionPercentage = userAnswers.length > 0 ? (correctCount / userAnswers.length) * 100 : 0;
-
+      for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-          if (!currentUser) throw new Error("کاربر وارد نشده است.");
-          const userDocRef = doc(db, "users", currentUser);
-          const userDoc = await getDoc(userDocRef);
-          let progress = userDoc.exists() ? userDoc.data().progress || {} : {};
-          if (!progress[grade]) progress[grade] = {};
-
-          const progressData = {
-            completion: completionPercentage,
-            answers: userAnswers,
-            timestamp: new Date().toISOString()
-          };
-          progress[grade][chapterId] = progressData;
-
-          await setDoc(userDocRef, { progress }, { merge: true });
-          await generateLesson(grade, chapterId, userAnswers);
-          showSection("lesson-section");
-        } catch (error) {
-          console.error("خطا در پایان آزمون:", error.message);
-          showError("lesson", "مشکلی در ذخیره پیشرفت یا تولید درسنامه پیش آمد.");
-        } finally {
-          showLoading(false);
-        }
-      }
-
-      let progressChart = null;
-      async function showProgress() {
-        showLoading(true);
-        const grade = document.getElementById("grade-select").value;
-        try {
-          if (!currentUser) throw new Error("کاربر وارد نشده است.");
-          const userDoc = await getDoc(doc(db, "users", currentUser));
-          const progressData = userDoc.exists() && userDoc.data().progress?.[grade] ? userDoc.data().progress[grade] : {};
-          const labels = chapters[grade].map(ch => ch.name);
-          const data = chapters[grade].map(ch => progressData[ch.id]?.completion || 0);
-
-          if (!labels.length || !data.every(d => typeof d === 'number')) {
-            throw new Error("داده‌های نمودار نامعتبر هستند");
-          }
-
-          const ctx = document.getElementById("progress-chart").getContext("2d");
-          if (progressChart) progressChart.destroy();
-          progressChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels,
-              datasets: [{
-                label: "درصد تکمیل",
-                data,
-                backgroundColor: "rgba(54, 162, 235, 0.5)",
-                borderColor: "rgba(54, 162, 235, 1)",
-                borderWidth: 1
-              }]
+          const response = await fetch("https://api.gapgpt.app/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${GAPGPT_API_KEY}`
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: { beginAtZero: true, max: 100, title: { display: true, text: 'درصد' } },
-                x: { title: { display: true, text: 'فصل‌ها' } }
-              },
-              plugins: {
-                legend: { display: true, position: 'top' }
-              }
-            }
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 1000,
+              temperature: 0.7
+            })
           });
-          showSection("progress-section");
-        } catch (error) {
-          console.error("خطا در نمایش پیشرفت:", error.message);
-          showError("progress", "مشکلی در نمایش پیشرفت پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data.choices || !data.choices[0]?.message?.content) {
+            throw new Error("ساختار پاسخ از GapGPT نامعتبر است");
+          }
+          const lessonContent = sanitizeLatex(data.choices[0].message.content.replace(/```html\n|\n```/g, ''));
+          document.getElementById("lesson-content").innerHTML = lessonContent;
+          setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
           showLoading(false);
+          return lessonContent;
+        } catch (error) {
+          console.error(`تلاش ${attempt} برای تولید درسنامه ناموفق بود:`, error.message);
+          if (attempt === retries) {
+            const fallbackLesson = `
+              <h3>درسنامه برای پایه ${grade}، فصل ${chapters[grade].find(c => c.id == chapterId).name}</h3>
+              <p>لطفاً روی موضوعات زیر تمرکز کنید: ${incorrectTopics}</p>
+              <h4>مثال: ساده‌سازی عبارت \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\)</h4>
+              <p>حل گام به گام:</p>
+              <ul>
+                <li>ابتدا عبارت داخل پرانتز را ساده کنیم: \\((2a^2b^3)^2 = 2^2 (a^2)^2 (b^3)^2 = 4a^4b^6\\)</li>
+                <li>حال عبارت به صورت \\(\\frac{3a^4b^{-2} \cdot 4a^4b^6}{6a^3b^5}\\) است.</li>
+                <li>ضرایب را ساده کنیم: \\(\\frac{3 \cdot 4}{6} = \frac{12}{6} = 2\\)</li>
+                <li>برای متغیر \\(a\\): \\(a^4 \cdot a^4 / a^3 = a^{4+4-3} = a^5\\)</li>
+                <li>برای متغیر \\(b\\): \\(b^{-2} \cdot b^6 / b^5 = b^{-2+6-5} = b^{-1} = \frac{1}{b}\\)</li>
+                <li>نتیجه نهایی: \\(2a^5 \cdot \frac{1}{b} = \frac{2a^5}{b}\\)</li>
+              </ul>
+              <p><strong>پاسخ نهایی: \\(\\frac{2a^5}{b}\\)</strong></p>`;
+            document.getElementById("lesson-content").innerHTML = sanitizeLatex(fallbackLesson);
+            setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+            const errorMessage = error.message.includes("429") ? "سرویس موقتاً شلوغ است. لطفاً کمی بعد تلاش کنید." : "لطفاً دوباره تلاش کنید.";
+            showError("lesson", errorMessage);
+            showLoading(false);
+            return fallbackLesson;
+          }
+          await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
         }
       }
+      showLoading(false);
+      return null;
+    }
 
-      document.getElementById("send-chat-btn").addEventListener("click", async () => {
-        showLoading(true);
-        const chatInput = document.getElementById("chat-input");
-        const question = chatInput.value.trim();
-        if (!question) {
-          showError("chat", "لطفاً یک سؤال وارد کنید!");
+    async function getCoachResponse(question, retries = 5, baseDelay = 500) {
+      showLoading(true);
+      const prompt = `You are a math coach for grades 7-9. Answer the following question in Persian: "${question}". Provide a clear and educational response in HTML format with structured sections (h3, p, ul, li). Use LaTeX for mathematical expressions with \\( and \\) for inline math and \\[ and \\] for display math. Ensure LaTeX is properly formatted and no invalid characters interfere with rendering. Example format: <h3>پاسخ</h3><p>توضیح...</p><ul><li>مثال...</li></ul>`;
+
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const response = await fetch("https://api.gapgpt.app/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${GAPGPT_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 500,
+              temperature: 0.7
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data.choices || !data.choices[0]?.message?.content) {
+            throw new Error("ساختار پاسخ از GapGPT نامعتبر است");
+          }
+          const responseText = sanitizeLatex(data.choices[0].message.content.replace(/```html\n|\n```/g, ''));
+          if (!responseText.trim()) {
+            throw new Error("پاسخ خالی از GapGPT");
+          }
+          const chatHistoryDiv = document.getElementById("chat-history");
+          chatHistoryDiv.innerHTML = `
+            <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+              <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+              <p><strong class="text-green-600">مربی:</strong> ${responseText}</p>
+              <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
+            </div>` + chatHistoryDiv.innerHTML;
+          chatHistoryDiv.scrollTop = 0;
+          setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+          showLoading(false);
+          return responseText;
+        } catch (error) {
+          console.error(`تلاش ${attempt} برای دریافت عملگرهای مجموعه پاسخ مربی ناموفق بود:`, error.message);
+          if (attempt === retries) {
+            const errorMessage = error.message.includes("429") ? "سرویس موقتاً شلوغ است. لطفاً کمی بعد تلاش کنید." : "لطفاً دوباره تلاش کنید.";
+            showError("chat", errorMessage);
+            showLoading(false);
+            return `<p>پاسخ به سؤال شما: "${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"<br>متأسفانه در حال حاضر نمی‌توانیم پاسخ دهیم. لطفاً دوباره تلاش کنید.</p>`;
+          }
+          await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
+        }
+      }
+      showLoading(false);
+      return null;
+    }
+
+    let currentUser = null;
+    let isAdmin = false;
+    onAuthStateChanged(auth, async user => {
+      showLoading(true);
+      try {
+        if (user) {
+          currentUser = user.uid;
+          isAdmin = user.email === ADMIN_EMAIL;
+          document.getElementById("logout-btn").classList.remove("hidden");
+          if (!user.emailVerified && !isAdmin) {
+            showSection("verify-email-section");
+          } else if (isAdmin) {
+            showSection("admin-section");
+            await loadAdminPanel();
+          } else {
+            showSection("grade-section");
+          }
+        } else {
+          currentUser = null;
+          isAdmin = false;
+          showSection("auth-section");
+        }
+      } catch (error) {
+        console.error("خطا در بررسی وضعیت احراز هویت:", error.message);
+        showError("auth", "مشکلی در بررسی وضعیت کاربر پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("register-btn").addEventListener("click", async () => {
+      showLoading(true);
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const grade = document.getElementById("grade").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!firstName || !lastName || !grade || !email || !password) {
+        showError("auth", "لطفاً تمام فیلدها را پر کنید!");
+        showLoading(false);
+        return;
+      }
+      if (password.length < 6) {
+        showError("auth", "رمز عبور باید حداقل ۶ کاراکتر باشد!");
+        showLoading(false);
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await sendEmailVerification(user);
+        await setDoc(doc(db, "users", user.uid), {
+          firstName,
+          lastName,
+          grade,
+          email,
+          createdAt: new Date().toISOString(),
+          isAdmin: email === ADMIN_EMAIL
+        });
+        alert("ثبت‌نام با موفقیت انجام شد! لطفاً ایمیل خود را تأیید کنید.");
+        showSection("verify-email-section");
+      } catch (error) {
+        console.error("خطا در ثبت‌نام:", error.message);
+        let errorMessage = "مشکلی در ثبت‌نام پیش آمد.";
+        if (error.code === "auth/email-already-in-use") {
+          errorMessage = "این ایمیل قبلاً ثبت شده است.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "ایمیل واردشده معتبر نیست.";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "رمز عبور خیلی ضعیف است.";
+        }
+        showError("auth", errorMessage);
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      showLoading(true);
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      if (!email || !password) {
+        showError("auth", "لطفاً ایمیل و رمز عبور را وارد کنید!");
+        showLoading(false);
+        return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        console.error("خطا در ورود:", error.message);
+        let errorMessage = "مشکلی در ورود پیش آمد.";
+        if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+          errorMessage = "ایمیل یا رمز عبور اشتباه است.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "ایمیل واردشده معتبر نیست.";
+        } else if (error.code === "auth/too-many-requests") {
+          errorMessage = "تلاش‌های زیادی انجام شده است. لطفاً بعداً تلاش کنید.";
+        }
+        showError("auth", errorMessage);
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      showLoading(true);
+      try {
+        await signOut(auth);
+        showSection("auth-section");
+      } catch (error) {
+        console.error("خطا در خروج:", error.message);
+        showError("auth", "مشکلی در خروج پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("resend-verification-btn").addEventListener("click", async () => {
+      showLoading(true);
+      if (!auth.currentUser) {
+        showError("verify", "لطفاً ابتدا وارد شوید.");
+        showSection("auth-section");
+        showLoading(false);
+        return;
+      }
+      try {
+        await sendEmailVerification(auth.currentUser);
+        alert("ایمیل تأیید مجدداً ارسال شد!");
+      } catch (error) {
+        console.error("خطا در ارسال مجدد ایمیل تأیید:", error.message);
+        showError("verify", "مشکلی در ارسال ایمیل تأیید پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("check-verification-btn").addEventListener("click", async () => {
+      showLoading(true);
+      if (!auth.currentUser) {
+        showError("verify", "لطفاً ابتدا وارد شوید.");
+        showSection("auth-section");
+        showLoading(false);
+        return;
+      }
+      try {
+        await auth.currentUser.reload();
+        if (auth.currentUser.emailVerified) {
+          showSection("grade-section");
+        } else {
+          showError("verify", "ایمیل شما هنوز تأیید نشده است!");
+        }
+      } catch (error) {
+        console.error("خطا در بررسی تأیید ایمیل:", error.message);
+        showError("verify", "مشکلی در بررسی وضعیت تأیید پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById("grade-select").addEventListener("change", () => {
+      const grade = document.getElementById("grade-select").value;
+      const chapterSelect = document.getElementById("chapter-select");
+      chapterSelect.innerHTML = "";
+      chapters[grade].forEach(chapter => {
+        const option = document.createElement("option");
+        option.value = chapter.id;
+        option.textContent = chapter.name;
+        chapterSelect.appendChild(option);
+      });
+    });
+
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let timerInterval;
+    document.getElementById("start-quiz-btn").addEventListener("click", async () => {
+      showLoading(true);
+      questionCache.clear();
+      const grade = document.getElementById("grade-select").value;
+      const chapterId = document.getElementById("chapter-select").value;
+      currentQuestions = [];
+      try {
+        const questionPromises = Array.from({ length: 3 }, (_, i) => {
+          const difficulty = (i % 3) + 1;
+          return generateQuestion(grade, chapterId, difficulty);
+        });
+        const questions = await Promise.all(questionPromises);
+        currentQuestions = questions.filter(q => q !== null);
+        if (currentQuestions.length === 0) {
+          showError("quiz", "لطفاً دوباره تلاش کنید.");
           showLoading(false);
           return;
         }
-        try {
-          if (!currentUser) throw new Error("کاربر وارد نشده است.");
-          const response = await getCoachResponse(question);
-          if (!response) throw new Error("پاسخ مربی دریافت نشد");
-          const chatEntry = {
-            question,
-            response,
-            timestamp: new Date().toISOString()
-          };
-          await addDoc(collection(db, "users", currentUser, "chatHistory"), chatEntry);
-          await updateChatHistory();
-          chatInput.value = "";
-        } catch (error) {
-          console.error("خطا در ذخیره چت:", error.message);
-          let errorMessage = "مشکلی در ارسال یا ذخیره پیام پیش آمد.";
-          if (error.code === "permission-denied") {
-            errorMessage = "دسترسی به این عملیات ممکن نیست.";
-          } else if (error.code === "unavailable") {
-            errorMessage = "سرویس موقتاً در دسترس نیست.";
-          }
-          showError("chat", errorMessage);
-        } finally {
-          showLoading(false);
+        currentQuestionIndex = 0;
+        userAnswers = [];
+        showQuestion();
+        showSection("quiz-section");
+      } catch (error) {
+        console.error("خطا در شروع آزمون:", error.message);
+        showError("quiz", "مشکلی در شروع آزمون پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    function showQuestion() {
+      const question = currentQuestions[currentQuestionIndex];
+      document.getElementById("question-title").innerHTML = sanitizeLatex(question.text);
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      question.options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = String(option);
+        button.classList.add("w-full", "p-2", "border", "rounded", "hover:bg-gray-200", "transition", "btn");
+        button.addEventListener("click", () => {
+          document.querySelectorAll("#options button").forEach(btn => btn.classList.remove("bg-blue-200"));
+          button.classList.add("bg-blue-200");
+        });
+        optionsDiv.appendChild(button);
+      });
+      setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+
+      const timeLimit = question.difficulty === 1 ? 20 : question.difficulty === 2 ? 30 : 45;
+      let timeLeft = timeLimit;
+      document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          submitAnswer(null);
         }
+      }, 1000);
+    }
+
+    document.getElementById("submit-answer-btn").addEventListener("click", () => {
+      const selectedButton = document.querySelector("#options button.bg-blue-200");
+      const selectedAnswer = selectedButton ? selectedButton.textContent : null;
+      submitAnswer(selectedAnswer);
+    });
+
+     function submitAnswer(selectedAnswer) {
+      clearInterval(timerInterval);
+      const question = currentQuestions[currentQuestionIndex];
+      const isCorrect = selectedAnswer === question.correctAnswer;
+      userAnswers.push({
+        question: question.text,
+        selected: selectedAnswer,
+        correct: question.correctAnswer,
+        isCorrect,
+        topic: question.topic
       });
 
-      async function updateChatHistory() {
-        showLoading(true);
-        const chatHistoryDiv = document.getElementById("chat-history");
-        chatHistoryDiv.innerHTML = "";
-        try {
-          if (!currentUser) {
-            throw new Error("کاربر وارد نشده است.");
-          }
-          const q = query(collection(db, "users", currentUser, "chatHistory"), orderBy("timestamp", "asc"));
-          const snapshot = await getDocs(q);
-          if (snapshot.empty) {
-            chatHistoryDiv.innerHTML = "<p class='text-gray-500 text-center'>هنوز گفتگویی ثبت نشده است.</p>";
-          } else {
-            const chats = [];
-            snapshot.forEach(doc => chats.push(doc.data()));
-            chats.reverse().forEach(chat => {
-              const question = chat.question ? chat.question.replace(/</g, "<").replace(/>/g, ">") : "سؤال نامشخص";
-              const response = chat.response ? chat.response : "<p>پاسخ دریافت نشد.</p>";
-              chatHistoryDiv.innerHTML += `
-                <div class="mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
-                  <p><strong class="text-blue-600">شما:</strong> ${question}</p>
-                  <p><strong class="text-green-600">مربی:</strong> ${response}</p>
-                  <p class="text-gray-400 text-sm">${new Date(chat.timestamp).toLocaleString('fa-IR')}</p>
-                </div>`;
-            });
-            chatHistoryDiv.scrollTop = 0;
-            setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-          }
-        } catch (error) {
-          console.error("خطا در بارگذاری تاریخچه چت:", error.message);
-          let errorMessage = "مشکلی در بارگذاری تاریخچه چت پیش آمد.";
-          if (error.code === "permission-denied") {
-            errorMessage = "دسترسی به تاریخچه چت ممکن نیست.";
-          } else if (error.code === "unavailable") {
-            errorMessage = "سرویس موقتاً در دسترس نیست.";
-          }
-          showError("chat", errorMessage);
-          chatHistoryDiv.innerHTML = "<p class='text-red-500 text-center'>مشکلی در بارگذاری تاریخچه چت پیش آمد.</p>";
-        } finally {
-          showLoading(false);
-        }
+      currentQuestionIndex++;
+      if (currentQuestionIndex < currentQuestions.length) {
+        showQuestion();
+      } else {
+        endQuiz();
       }
+    }
 
-      let adminProgressChart = null;
-      async function loadAdminPanel() {
-        showLoading(true);
-        try {
-          if (!isAdmin) {
-            showError("admin", "دسترسی غیرمجاز!");
-            showSection("auth-section");
-            showLoading(false);
-            return;
+    document.getElementById("end-quiz-btn").addEventListener("click", endQuiz);
+
+    async function endQuiz() {
+      showLoading(true);
+      clearInterval(timerInterval);
+      const grade = document.getElementById("grade-select").value;
+      const chapterId = document.getElementById("chapter-select").value;
+      const correctCount = userAnswers.filter(a => a.isCorrect).length;
+      const completionPercentage = userAnswers.length > 0 ? (correctCount / userAnswers.length) * 100 : 0;
+
+      try {
+        if (!currentUser) throw new Error("کاربر وارد نشده است.");
+        const userDocRef = doc(db, "users", currentUser);
+        const userDoc = await getDoc(userDocRef);
+        let progress = userDoc.exists() ? userDoc.data().progress || {} : {};
+        if (!progress[grade]) progress[grade] = {};
+
+        const progressData = {
+          completion: completionPercentage,
+          answers: userAnswers,
+          timestamp: new Date().toISOString()
+        };
+        progress[grade][chapterId] = progressData;
+
+        await setDoc(userDocRef, { progress }, { merge: true });
+        await generateLesson(grade, chapterId, userAnswers);
+        showSection("lesson-section");
+      } catch (error) {
+        console.error("خطا در پایان آزمون:", error.message);
+        showError("lesson", "مشکلی در ذخیره پیشرفت یا تولید درسنامه پیش آمد.");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    let progressChart = null;
+    async function showProgress() {
+      showLoading(true);
+      const grade = document.getElementById("grade-select").value;
+      try {
+        if (!currentUser) throw new Error("کاربر وارد نشده است.");
+        const userDoc = await getDoc(doc(db, "users", currentUser));
+        const progressData = userDoc.exists() && userDoc.data().progress?.[grade] ? userDoc.data().progress[grade] : {};
+        const labels = chapters[grade].map(ch => ch.name);
+        const data = chapters[grade].map(ch => progressData[ch.id]?.completion || 0);
+
+        if (!labels.length || !data.every(d => typeof d === 'number')) {
+          throw new Error("داده‌های نمودار نامعتبر هستند");
+        }
+
+        const ctx = document.getElementById("progress-chart").getContext("2d");
+        if (progressChart) progressChart.destroy();
+        progressChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: "درصد تکمیل",
+              data,
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, max: 100, title: { display: true, text: 'درصد' } },
+              x: { title: { display: true, text: 'فصل‌ها' } }
+            },
+            plugins: {
+              legend: { display: true, position: 'top' }
+            }
           }
-          const userListDiv = document.getElementById("user-list");
-          userListDiv.innerHTML = "";
-          const usersSnapshot = await getDocs(collection(db, "users"));
-          if (usersSnapshot.empty) {
-            userListDiv.innerHTML = "<p class='text-gray-500'>هیچ کاربری یافت نشد.</p>";
-            showLoading(false);
-            return;
+        });
+        showSection("progress-section");
+      } catch (error) {
+        console.error("خطا در نمایش پیشرفت:", error.message);
+        showError("progress", "مشکلی در نمایش پیشرفت پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    document.getElementById("send-chat-btn").addEventListener("click", async () => {
+      showLoading(true);
+      const chatInput = document.getElementById("chat-input");
+      const question = chatInput.value.trim();
+      if (!question) {
+        showError("chat", "لطفاً یک سؤال وارد کنید!");
+        showLoading(false);
+        return;
+      }
+      try {
+        if (!currentUser) throw new Error("کاربر وارد نشده است.");
+        const response = await getCoachResponse(question);
+        if (!response) throw new Error("پاسخ مربی دریافت نشد");
+        const chatEntry = {
+          question,
+          response,
+          timestamp: new Date().toISOString()
+        };
+        await addDoc(collection(db, "users", currentUser, "chatHistory"), chatEntry);
+        await updateChatHistory();
+        chatInput.value = "";
+      } catch (error) {
+        console.error("خطا در ذخیره چت:", error.message);
+        let errorMessage = "مشکلی در ارسال یا ذخیره پیام پیش آمد.";
+        if (error.code === "permission-denied") {
+          errorMessage = "دسترسی به این عملیات ممکن نیست.";
+        } else if (error.code === "unavailable") {
+          errorMessage = "سرویس موقتاً در دسترس نیست.";
+        }
+        showError("chat", errorMessage);
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    async function updateChatHistory() {
+      showLoading(true);
+      const chatHistoryDiv = document.getElementById("chat-history");
+      chatHistoryDiv.innerHTML = "";
+      try {
+        if (!currentUser) {
+          throw new Error("کاربر وارد نشده است.");
+        }
+        const q = query(collection(db, "users", currentUser, "chatHistory"), orderBy("timestamp", "asc"));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          chatHistoryDiv.innerHTML = "<p class='text-gray-500 text-center'>هنوز گفتگویی ثبت نشده است.</p>";
+        } else {
+          const chats = [];
+          snapshot.forEach(doc => chats.push(doc.data()));
+          chats.reverse().forEach(chat => {
+            const question = chat.question ? chat.question.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "سؤال نامشخص";
+            const response = chat.response ? chat.response : "<p>پاسخ دریافت نشد.</p>";
+            chatHistoryDiv.innerHTML += `
+              <div class="mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
+                <p><strong class="text-blue-600">شما:</strong> ${question}</p>
+                <p><strong class="text-green-600">مربی:</strong> ${response}</p>
+                <p class="text-gray-400 text-sm">${new Date(chat.timestamp).toLocaleString('fa-IR')}</p>
+              </div>`;
+          });
+          chatHistoryDiv.scrollTop = 0;
+          setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+        }
+      } catch (error) {
+        console.error("خطا در بارگذاری تاریخچه چت:", error.message);
+        let errorMessage = "مشکلی در بارگذاری تاریخچه چت پیش آمد.";
+        if (error.code === "permission-denied") {
+          errorMessage = "دسترسی به تاریخچه چت ممکن نیست.";
+        } else if (error.code === "unavailable") {
+          errorMessage = "سرویس موقتاً در دسترس نیست.";
+        }
+        showError("chat", errorMessage);
+        chatHistoryDiv.innerHTML = "<p class='text-red-500 text-center'>مشکلی در بارگذاری تاریخچه چت پیش آمد.</p>";
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    let adminProgressChart = null;
+    async function loadAdminPanel() {
+      showLoading(true);
+      try {
+        if (!isAdmin) {
+          showError("admin", "دسترسی غیرمجاز!");
+          showSection("auth-section");
+          showLoading(false);
+          return;
+        }
+        const userListDiv = document.getElementById("user-list");
+        userListDiv.innerHTML = "";
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        if (usersSnapshot.empty) {
+          userListDiv.innerHTML = "<p class='text-gray-500'>هیچ کاربری یافت نشد.</p>";
+          showLoading(false);
+          return;
+        }
+        userListDiv.innerHTML = "<ul class='space-y-2'>";
+        usersSnapshot.forEach(doc => {
+          const user = doc.data();
+          if (!user.email || !user.firstName || !user.lastName) return;
+          userListDiv.innerHTML += `
+            <li class="p-3 bg-blue-50 rounded-lg">
+              <p><strong>نام:</strong> ${user.firstName} ${user.lastName}</p>
+              <p><strong>ایمیل:</strong> ${user.email}</p>
+              <p><strong>پایه:</strong> ${user.grade}</p>
+            </li>`;
+        });
+        userListDiv.innerHTML += "</ul>";
+      } catch (error) {
+        console.error("خطا در بارگذاری پنل ادمین:", error.message);
+        showError("admin", "مشکلی در بارگذاری پنل ادمین پیش آمد.");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function showAdminProgress(userData, grade) {
+      try {
+        const progressData = userData.progress?.[grade] || {};
+        const labels = chapters[grade].map(ch => ch.name);
+        const data = chapters[grade].map(ch => progressData[ch.id]?.completion || 0);
+
+        if (!labels.length || !data.every(d => typeof d === 'number')) {
+          throw new Error("داده‌های نمودار نامعتبر هستند");
+        }
+
+        const ctx = document.getElementById("admin-progress-chart").getContext("2d");
+        if (adminProgressChart) adminProgressChart.destroy();
+        adminProgressChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              label: `درصد تکمیل پایه ${grade}`,
+              data,
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, max: 100, title: { display: true, text: 'درصد' } },
+              x: { title: { display: true, text: 'فصل‌ها' } }
+            },
+            plugins: {
+              legend: { display: true, position: 'top' }
+            }
           }
-          userListDiv.innerHTML = "<ul class='space-y-2'>";
-          usersSnapshot.forEach(doc => {
-            const user = doc.data();
-            if (!user.email || !user.firstName || !user.lastName) return;
-            userListDiv.innerHTML += `
-              <li class="p-3 bg-blue-50 rounded-lg">
+        });
+        document.getElementById("admin-progress-chart").classList.remove("hidden");
+      } catch (error) {
+        console.error("خطا در نمایش پیشرفت ادمین:", error.message);
+        showError("admin", "مشکلی در نمایش پیشرفت پیش آمد.");
+        document.getElementById("admin-progress-chart").classList.add("hidden");
+      }
+    }
+
+    document.getElementById("admin-search-btn").addEventListener("click", async () => {
+      showLoading(true);
+      const searchEmail = document.getElementById("admin-search-user").value.trim();
+      if (!searchEmail) {
+        showError("admin", "لطفاً ایمیل کاربر را وارد کنید!");
+        showLoading(false);
+        return;
+      }
+      try {
+        if (!isAdmin) {
+          showError("admin", "دسترسی غیرمجاز!");
+          showSection("auth-section");
+          showLoading(false);
+          return;
+        }
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        let found = false;
+        let userId = null;
+        const userDetailsDiv = document.getElementById("admin-user-details");
+        userDetailsDiv.innerHTML = "";
+        for (const doc of usersSnapshot.docs) {
+          const user = doc.data();
+          if (user.email === searchEmail) {
+            found = true;
+            userId = doc.id;
+            if (!user.firstName || !user.lastName || !user.grade) {
+              userDetailsDiv.innerHTML = "<p class='text-red-500'>داده‌های کاربر ناقص است.</p>";
+              showLoading(false);
+              return;
+            }
+            userDetailsDiv.innerHTML = `
+              <div class="p-4 bg-blue-50 rounded-lg">
                 <p><strong>نام:</strong> ${user.firstName} ${user.lastName}</p>
                 <p><strong>ایمیل:</strong> ${user.email}</p>
                 <p><strong>پایه:</strong> ${user.grade}</p>
-              </li>`;
-          });
-          userListDiv.innerHTML += "</ul>";
-        } catch (error) {
-          console.error("خطا در بارگذاری پنل ادمین:", error.message);
-          showError("admin", "مشکلی در بارگذاری پنل ادمین پیش آمد.");
-        } finally {
-          showLoading(false);
-        }
-      }
+                <h4 class="font-semibold mt-4">پیشرفت:</h4>
+                <select id="admin-grade-select" class="w-full input mb-4">
+                  <option value="7">پایه هفتم</option>
+                  <option value="8">پایه هشتم</option>
+                  <option value="9">پایه نهم</option>
+                </select>
+                <canvas id="admin-progress-chart"></canvas>
+                <h4 class="font-semibold mt-4">تاریخچه آزمون‌ها:</h4>
+                <div id="admin-quiz-history" class="bg-gray-100 p-2 rounded"></div>
+              </div>`;
+            document.getElementById("admin-grade-select").classList.remove("hidden");
+            document.getElementById("admin-grade-select").addEventListener("change", () => {
+              const selectedGrade = document.getElementById("admin-grade-select").value;
+              showAdminProgress(user, selectedGrade);
+            });
+            await showAdminProgress(user, "7");
 
-      async function showAdminProgress(userData, grade) {
-        try {
-          const progressData = userData.progress?.[grade] || {};
-          const labels = chapters[grade].map(ch => ch.name);
-          const data = chapters[grade].map(ch => progressData[ch.id]?.completion || 0);
-
-          if (!labels.length || !data.every(d => typeof d === 'number')) {
-            throw new Error("داده‌های نمودار نامعتبر هستند");
-          }
-
-          const ctx = document.getElementById("admin-progress-chart").getContext("2d");
-          if (adminProgressChart) adminProgressChart.destroy();
-          adminProgressChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels,
-              datasets: [{
-                label: `درصد تکمیل پایه ${grade}`,
-                data,
-                backgroundColor: "rgba(54, 162, 235, 0.5)",
-                borderColor: "rgba(54, 162, 235, 1)",
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: { beginAtZero: true, max: 100, title: { display: true, text: 'درصد' } },
-                x: { title: { display: true, text: 'فصل‌ها' } }
-              },
-              plugins: {
-                legend: { display: true, position: 'top' }
+            const quizHistoryDiv = userDetailsDiv.querySelector("#admin-quiz-history");
+            const progress = user.progress || {};
+            let hasQuizzes = false;
+            for (const grade in progress) {
+              for (const chapterId in progress[grade]) {
+                hasQuizzes = true;
+                const quiz = progress[grade][chapterId];
+                quizHistoryDiv.innerHTML += `
+                  <div class="mb-4 p-3 bg-white rounded">
+                    <p><strong>پایه:</strong> ${grade}</p>
+                    <p><strong>فصل:</strong> ${chapters[grade].find(c => c.id == chapterId).name}</p>
+                    <p><strong>زمان:</strong> ${new Date(quiz.timestamp).toLocaleString('fa-IR')}</p>
+                    <p><strong>درصد تکمیل:</strong> ${quiz.completion.toFixed(2)}%</p>
+                    <div class="mt-2">
+                      <p class="font-semibold">سؤالات و پاسخ‌ها:</p>
+                      <ul class="list-disc pl-5">
+                        ${quiz.answers.map((ans, idx) => `
+                          <li class="mt-1">
+                            <p><strong>سؤال ${idx + 1}:</strong> ${sanitizeLatex(ans.question)}</p>
+                            <p><strong>پاسخ شما:</strong> ${ans.selected || "بدون پاسخ"}</p>
+                            <p><strong>پاسخ صحیح:</strong> ${ans.correct}</p>
+                            <p><strong>وضعیت:</strong> ${ans.isCorrect ? "صحیح" : "غلط"}</p>
+                          </li>
+                        `).join('')}
+                      </ul>
+                    </div>
+                  </div>`;
               }
             }
-          });
-          document.getElementById("admin-progress-chart").classList.remove("hidden");
-        } catch (error) {
-          console.error("خطا در نمایش پیشرفت ادمین:", error.message);
-          showError("admin", "مشکلی در نمایش پیشرفت پیش آمد.");
-          document.getElementById("admin-progress-chart").classList.add("hidden");
+            if (!hasQuizzes) {
+              quizHistoryDiv.innerHTML = "<p class='text-gray-500'>هیچ آزمونی ثبت نشده است.</p>";
+            }
+            setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
+            break;
+          }
         }
+        if (!found) {
+          userDetailsDiv.innerHTML = "<p class='text-red-500'>کاربری با این ایمیل یافت نشد.</p>";
+        }
+      } catch (error) {
+        console.error("خطا در جستجوی کاربر:", error.message);
+        showError("admin", "مشکلی در جستجوی کاربر پیش آمد. لطفاً دوباره تلاش کنید.");
+      } finally {
+        showLoading(false);
       }
+    });
 
-      document.getElementById("admin-search-btn").addEventListener("click", async () => {
-        showLoading(true);
-        const searchEmail = document.getElementById("admin-search-user").value.trim();
-        if (!searchEmail) {
-          showError("admin", "لطفاً ایمیل کاربر را وارد کنید!");
-          showLoading(false);
-          return;
-        }
+    document.getElementById("admin-logout-btn").addEventListener("click", async () => {
+      showLoading(true);
       try {
-    // در صورت عدم وجود احراز هویت معتبر، دسترسی ادمین بررسی می‌شود
-       if (!isAdmin) {
-         showError("admin", "دسترسی غیرمجاز!");
-          showSection("auth-section");
-         showLoading(false);
-          return;
-    }
-          const usersSnapshot = await getDocs(collection(db, "users"));
-          let found = false;
-          let userId = null;
-          const userDetailsDiv = document.getElementById("admin-user-details");
-          userDetailsDiv.innerHTML = "";
-          for (const doc of usersSnapshot.docs) {
-            const user = doc.data();
-            if (user.email === searchEmail) {
-              found = true;
-              userId = doc.id;
-              if (!user.firstName || !user.lastName || !user.grade) {
-                userDetailsDiv.innerHTML = "<p class='text-red-500'>داده‌های کاربر ناقص است.</p>";
-                showLoading(false);
-                return;
-              }
-              userDetailsDiv.innerHTML = `
-                <div class="p-4 bg-blue-50 rounded-lg">
-                  <p><strong>نام:</strong> ${user.firstName} ${user.lastName}</p>
-                  <p><strong>ایمیل:</strong> ${user.email}</p>
-                  <p><strong>پایه:</strong> ${user.grade}</p>
-                  <h4 class="font-semibold mt-4">پیشرفت:</h4>
-                  <select id="admin-grade-select" class="w-full input mb-4">
-                    <option value="7">پایه هفتم</option>
-                    <option value="8">پایه هشتم</option>
-                    <option value="9">پایه نهم</option>
-                  </select>
-                  <canvas id="admin-progress-chart"></canvas>
-                  <h4 class="font-semibold mt-4">تاریخچه آزمون‌ها:</h4>
-                  <div id="admin-quiz-history" class="bg-gray-100 p-2 rounded"></div>
-                </div>`;
-              document.getElementById("admin-grade-select").classList.remove("hidden");
-              document.getElementById("admin-grade-select").addEventListener("change", () => {
-                const selectedGrade = document.getElementById("admin-grade-select").value;
-                showAdminProgress(user, selectedGrade);
-              });
-              await showAdminProgress(user, "7");
+        await signOut(auth);
+        showSection("auth-section");
+      } catch (error) {
+        console.error("خطا در خروج ادمین:", error.message);
+        showError("admin", "مشکلی در خروج پیش آمد.");
+      } finally {
+        showLoading(false);
+      }
+    });
 
-              const quizHistoryDiv = userDetailsDiv.querySelector("#admin-quiz-history");
-              const progress = user.progress || {};
-              let hasQuizzes = false;
-              for (const grade in progress) {
-                for (const chapterId in progress[grade]) {
-                  hasQuizzes = true;
-                  const quiz = progress[grade][chapterId];
-                  quizHistoryDiv.innerHTML += `
-                    <div class="mb-4 p-3 bg-white rounded">
-                      <p><strong>پایه:</strong> ${grade}</p>
-                      <p><strong>فصل:</strong> ${chapters[grade].find(c => c.id == chapterId).name}</p>
-                      <p><strong>زمان:</strong> ${new Date(quiz.timestamp).toLocaleString('fa-IR')}</p>
-                      <p><strong>درصد تکمیل:</strong> ${quiz.completion.toFixed(2)}%</p>
-                      <div class="mt-2">
-                        <p class="font-semibold">سؤالات و پاسخ‌ها:</p>
-                        <ul class="list-disc pl-5">
-                          ${quiz.answers.map((ans, idx) => `
-                            <li class="mt-1">
-                              <p><strong>سؤال ${idx + 1}:</strong> ${sanitizeLatex(ans.question)}</p>
-                              <p><strong>پاسخ شما:</strong> ${ans.selected || "بدون پاسخ"}</p>
-                              <p><strong>پاسخ صحیح:</strong> ${ans.correct}</p>
-                              <p><strong>وضعیت:</strong> ${ans.isCorrect ? "صحیح" : "غلط"}</p>
-                            </li>
-                          `).join('')}
-                        </ul>
-                      </div>
-                    </div>`;
-                }
-              }
-              if (!hasQuizzes) {
-                quizHistoryDiv.innerHTML = "<p class='text-gray-500'>هیچ آزمونی ثبت نشده است.</p>";
-              }
-              setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
-              break;
-            }
-          }
-          if (!found) {
-            userDetailsDiv.innerHTML = "<p class='text-red-500'>کاربری با این ایمیل یافت نشد.</p>";
-          }
-        } catch (error) {
-          console.error("خطا در جستجوی کاربر:", error.message);
-          showError("admin", "مشکلی در جستجوی کاربر پیش آمد. لطفاً دوباره تلاش کنید.");
-        } finally {
-          showLoading(false);
-        }
-      });
+    document.getElementById("back-to-auth-btn").addEventListener("click", () => showSection("auth-section"));
+    document.getElementById("back-to-auth-from-grade-btn").addEventListener("click", () => showSection("auth-section"));
+    document.getElementById("back-to-grade-btn").addEventListener("click", () => showSection("grade-section"));
+    document.getElementById("back-to-grade-from-progress-btn").addEventListener("click", () => showSection("grade-section"));
+    document.getElementById("back-to-grade-from-chat-btn").addEventListener("click", () => showSection("grade-section"));
+    document.getElementById("back-to-grade-from-quiz").addEventListener("click", () => showSection("grade-section"));
+    document.getElementById("back-to-auth-from-admin-btn").addEventListener("click", () => showSection("auth-section"));
+    document.getElementById("view-progress-btn").addEventListener("click", showProgress);
+    document.getElementById("view-chat-btn").addEventListener("click", async () => {
+      await updateChatHistory();
+      showSection("chat-section");
+    });
 
-      document.getElementById("admin-logout-btn").addEventListener("click", async () => {
-        showLoading(true);
-        try {
-          await signOut(auth);
-          showSection("auth-section");
-        } catch (error) {
-          console.error("خطا در خروج ادمین:", error.message);
-          showError("admin", "مشکلی در خروج پیش آمد.");
-        } finally {
-          showLoading(false);
-        }
-      });
-
-      document.getElementById("back-to-auth-btn").addEventListener("click", () => showSection("auth-section"));
-      document.getElementById("back-to-auth-from-grade-btn").addEventListener("click", () => showSection("auth-section"));
-      document.getElementById("back-to-grade-btn").addEventListener("click", () => showSection("grade-section"));
-      document.getElementById("back-to-grade-from-progress-btn").addEventListener("click", () => showSection("grade-section"));
-      document.getElementById("back-to-grade-from-chat-btn").addEventListener("click", () => showSection("grade-section"));
-      document.getElementById("back-to-grade-from-quiz").addEventListener("click", () => showSection("grade-section"));
-      document.getElementById("back-to-auth-from-admin-btn").addEventListener("click", () => showSection("auth-section"));
-      document.getElementById("view-progress-btn").addEventListener("click", showProgress);
-      document.getElementById("view-chat-btn").addEventListener("click", async () => {
-        await updateChatHistory();
-        showSection("chat-section");
-      });
-
-      document.getElementById("grade-select").dispatchEvent(new Event("change"));
-    } catch (error) {
-      console.error("خطا در راه‌اندازی Firebase:", error.message);
-      showError("auth", "مشکلی در راه‌اندازی برنامه پیش آمد.");
-    }
-  </script>
+    document.getElementById("grade-select").dispatchEvent(new Event("change"));
+  } catch (error) {
+    console.error("خطا در راه‌اندازی Firebase:", error.message);
+    showError("auth", "مشکلی در راه‌اندازی برنامه پیش آمد.");
+  }
+</script>
 </body>
 </html>
