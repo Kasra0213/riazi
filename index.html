@@ -1,4 +1,244 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  ریاضی دان</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js" async></script>
+  <style>
+    body {
+      font-family: 'Vazir', sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #a7f3d0);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 600px;
+      margin: 1rem auto;
+      transition: all 0.3s ease;
+    }
+    .admin-container {
+      max-width: 900px;
+    }
+    .btn {
+      transition: transform 0.2s ease, background-color 0.3s ease;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .input, select {
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      width: 100%;
+      transition: border-color 0.3s ease;
+    }
+    .input:focus, select:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error-message {
+      color: #dc2626;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    #chat-history {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 0.75rem;
+      word-wrap: break-word;
+    }
+    #chat-history > div {
+      margin-bottom: 1rem;
+    }
+    #chat-history p {
+      margin: 0.5rem 0;
+    }
+    #progress-chart, #admin-progress-chart {
+      max-height: 300px;
+      width: 100%;
+    }
+    @font-face {
+      font-family: 'Vazir';
+      src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2') format('woff2');
+    }
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+        margin: 0.5rem;
+      }
+      .btn {
+        padding: 0.5rem 1rem;
+      }
+      .input, select {
+        padding: 0.5rem;
+      }
+      h1, h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+  </div>
+  <div id="app" class="container mx-auto relative">
+    <header class="flex flex-col sm:flex-row justify-between items-center mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-blue-600">بازی ریاضی</h1>
+      <button id="logout-btn" class="btn bg-red-500 text-white hidden">خروج</button>
+    </header>
+
+    <div id="auth-section" class="bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">ثبت‌نام / ورود</h2>
+      <div id="register-form">
+        <input id="first-name" type="text" placeholder="نام" class="input mb-4">
+        <input id="last-name" type="text" placeholder="نام خانوادگی" class="input mb-4">
+        <select id="grade" class="input mb-4">
+          <option value="7">پایه هفتم</option>
+          <option value="8">پایه هشتم</option>
+          <option value="9">پایه نهم</option>
+        </select>
+        <input id="email" type="email" placeholder="ایمیل" class="input mb-4">
+        <input id="password" type="password" placeholder="رمز عبور" class="input mb-4">
+        <button id="register-btn" class="btn bg-blue-500 text-white mb-2">ثبت‌نام</button>
+      </div>
+      <div id="login-form" class="mt-4">
+        <input id="login-email" type="email" placeholder="ایمیل" class="input mb-4">
+        <input id="login-password" type="password" placeholder="رمز عبور" class="input mb-4">
+        <button id="login-btn" class="btn bg-green-500 text-white">ورود</button>
+      </div>
+      <p id="auth-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="verify-email-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">تأیید ایمیل</h2>
+      <p class="mb-4 text-gray-700">لطفاً ایمیل خود را تأیید کنید. لینک تأیید به ایمیل شما ارسال شده است.</p>
+      <button id="resend-verification-btn" class="btn bg-blue-500 text-white mb-2">ارسال مجدد ایمیل تأیید</button>
+      <button id="check-verification-btn" class="btn bg-green-500 text-white">بررسی وضعیت تأیید</button>
+      <button id="back-to-auth-btn" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
+      <p id="verify-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="grade-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">انتخاب پایه و فصل</h2>
+      <select id="grade-select" class="input mb-4">
+        <option value="7">پایه هفتم</option>
+        <option value="8">پایه هشتم</option>
+        <option value="9">پایه نهم</option>
+      </select>
+      <select id="chapter-select" class="input mb-4"></select>
+      <button id="start-quiz-btn" class="btn bg-blue-500 text-white mb-2">شروع آزمون</button>
+      <button id="view-progress-btn" class="btn bg-purple-500 text-white mb-2">مشاهده پیشرفت</button>
+      <button id="view-chat-btn" class="btn bg-teal-500 text-white mb-2">چت با مربی</button>
+      <button id="back-to-auth-from-grade-btn" class="btn bg-gray-500 text-white">بازگشت</button>
+    </div>
+
+    <div id="quiz-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 id="question-title" class="text-lg sm:text-xl font-bold mb-4 text-blue-600"></h2>
+      <div id="options" class="space-y-2"></div>
+      <div id="timer" class="text-red-500 font-bold mt-4"></div>
+      <button id="submit-answer-btn" class="btn bg-blue-500 text-white mt-4">ارسال پاسخ</button>
+      <button id="end-quiz-btn" class="btn bg-red-500 text-white mt-2">پایان آزمون</button>
+      <button id="back-to-grade-from-quiz" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
+      <p id="quiz-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="lesson-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">درسنامه</h2>
+      <div id="lesson-content" class="prose text-gray-700"></div>
+      <button id="back-to-grade-btn" class="btn bg-blue-500 text-white mt-4">بازگشت</button>
+      <p id="lesson-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="progress-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">تحلیل عملکرد</h2>
+      <canvas id="progress-chart"></canvas>
+      <button id="back-to-grade-from-progress-btn" class="btn bg-blue-500 text-white mt-4">بازگشت</button>
+      <p id="progress-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="chat-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">چت با مربی هوش مصنوعی</h2>
+      <div id="chat-history" class="mb-4"></div>
+      <input id="chat-input" type="text" placeholder="سوال خود را بپرسید..." class="input mb-4">
+      <button id="send-chat-btn" class="btn bg-blue-500 text-white mb-2">ارسال</button>
+      <button id="back-to-grade-from-chat-btn" class="btn bg-blue-500 text-white">بازگشت</button>
+      <p id="chat-error" class="error-message hidden"></p>
+    </div>
+
+    <div id="admin-section" class="hidden bg-white p-4 sm:p-6 rounded-lg shadow-md admin-container mx-auto">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center text-blue-600">پنل ادمین</h2>
+      <div class="mb-6">
+        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-blue-500">لیست کاربران</h3>
+        <div id="user-list" class="bg-gray-50 p-4 rounded-lg"></div>
+      </div>
+      <div class="mb-6">
+        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-blue-500">جستجوی کاربر</h3>
+        <input id="admin-search-user" type="text" placeholder="ایمیل کاربر را وارد کنید" class="input mb-4">
+        <button id="admin-search-btn" class="btn bg-blue-500 text-white">جستجو</button>
+        <div id="admin-user-details" class="bg-gray-50 p-4 rounded-lg mt-4">
+          <select id="admin-grade-select" class="input mb-4 hidden">
+            <option value="7">پایه هفتم</option>
+            <option value="8">پایه هشتم</option>
+            <option value="9">پایه نهم</option>
+          </select>
+          <canvas id="admin-progress-chart" class="hidden"></canvas>
+          <div id="admin-quiz-history" class="mt-4"></div>
+        </div>
+      </div>
+      <button id="admin-logout-btn" class="btn bg-red-500 text-white mt-4">خروج</button>
+      <button id="back-to-auth-from-admin-btn" class="btn bg-gray-500 text-white mt-2">بازگشت</button>
+      <p id="admin-error" class="error-message hidden"></p>
+    </div>
+  </div>
+
+  <script type="module">
+   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import { getFirestore, doc, setDoc, getDoc, getDocs, collection, addDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
@@ -18,6 +258,9 @@ const openai = {
             messages
           })
         });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         return await response.json();
       }
     }
@@ -143,6 +386,13 @@ try {
           options: ["1", "2", "3", "4"],
           topic: "ساده‌سازی عبارات",
           difficulty: 1
+        },
+        {
+          text: "حل کنید: \\(5x - 7 = 3x + 1\\). مقدار \\(x\\) چیست؟",
+          correctAnswer: "4",
+          options: ["2", "3", "4", "5"],
+          topic: "معادلات خطی",
+          difficulty: 2
         }
       ]
     },
@@ -153,6 +403,22 @@ try {
           correctAnswer: "5/6",
           options: ["1/2", "2/3", "5/6", "1"],
           topic: "عملیات با اعداد گویا",
+          difficulty: 1
+        },
+        {
+          text: "مقدار \\(\\frac{3}{4} - \\frac{1}{8}\\) چیست؟",
+          correctAnswer: "5/8",
+          options: ["1/4", "3/8", "5/8", "3/4"],
+          topic: "عملیات با اعداد گویا",
+          difficulty: 2
+        }
+      ],
+      6: [
+        {
+          text: "در یک مثلث، اگر یک زاویه \\(40^\\circ\\) و زاویه دیگر \\(70^\\circ\\) باشد، زاویه سوم چند درجه است؟",
+          correctAnswer: "70",
+          options: ["60", "70", "80", "90"],
+          topic: "خواص مثلث",
           difficulty: 1
         }
       ]
@@ -165,27 +431,47 @@ try {
           options: ["{1, 2}", "{2, 3}", "{3, 4}", "{1, 4}"],
           topic: "عملگرهای مجموعه",
           difficulty: 1
+        },
+        {
+          text: "اگر \\(A = \\{1, 2, 3, 4\\}\\) و \\(B = \\{3, 4, 5\\}\\)، مجموعه \\(A \\cup B\\) چیست؟",
+          correctAnswer: "{1, 2, 3, 4, 5}",
+          options: ["{1, 2, 3}", "{3, 4, 5}", "{1, 2, 3, 4, 5}", "{1, 2, 5}"],
+          topic: "عملگرهای مجموعه",
+          difficulty: 2
         }
       ]
     }
   };
 
   function showLoading(show) {
-    document.getElementById("loading").classList.toggle("hidden", !show);
+    const loadingElement = document.getElementById("loading");
+    if (loadingElement) {
+      loadingElement.classList.toggle("hidden", !show);
+    }
   }
 
   function showError(sectionId, message) {
     const errorElement = document.getElementById(`${sectionId}-error`);
-    errorElement.textContent = message || "لطفاً دوباره تلاش کنید.";
-    errorElement.classList.remove("hidden");
-    setTimeout(() => errorElement.classList.add("hidden"), 5000);
+    if (errorElement) {
+      errorElement.textContent = message || "لطفاً دوباره تلاش کنید.";
+      errorElement.classList.remove("hidden");
+      setTimeout(() => errorElement.classList.add("hidden"), 5000);
+    }
   }
 
   function showSection(sectionId) {
+    const appDiv = document.getElementById("app");
+    if (!appDiv) return;
     document.querySelectorAll("#app > div").forEach(div => div.classList.add("hidden"));
-    document.getElementById(sectionId).classList.remove("hidden");
-    document.getElementById("logout-btn").classList.toggle("hidden", sectionId === "auth-section");
-    if (sectionId === "quiz-section" || sectionId === "lesson-section" || sectionId === "chat-section" || sectionId === "admin-section") {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.remove("hidden");
+    }
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.classList.toggle("hidden", sectionId === "auth-section");
+    }
+    if (["quiz-section", "lesson-section", "chat-section", "admin-section"].includes(sectionId)) {
       setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
     }
   }
@@ -214,11 +500,11 @@ try {
   }
 
   let questionCache = new Map();
-  async function generateQuestion(grade, chapterId, difficulty, retries = 7, baseDelay = 1000) {
+  async function generateQuestion(grade, chapterId, difficulty, retries = 10, baseDelay = 1000) {
     showLoading(true);
     const topic = topics[grade][chapterId][Math.floor(Math.random() * topics[grade][chapterId].length)];
     const cacheKey = `${grade}-${chapterId}-${difficulty}-${topic}`;
-    
+
     // بررسی کش
     if (questionCache.has(cacheKey) && questionCache.get(cacheKey).length > 0) {
       const cachedQuestions = questionCache.get(cacheKey);
@@ -240,14 +526,31 @@ try {
       }
     }
 
+    // بررسی سؤالات ذخیره‌شده در Firestore
+    try {
+      const q = query(collection(db, "questions"), where("grade", "==", grade), where("chapterId", "==", chapterId), where("difficulty", "==", difficulty));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const questions = snapshot.docs.map(doc => doc.data());
+        const question = questions[Math.floor(Math.random() * questions.length)];
+        if (!questionCache.has(cacheKey)) {
+          questionCache.set(cacheKey, []);
+        }
+        questionCache.get(cacheKey).push({ ...question });
+        showLoading(false);
+        return question;
+      }
+    } catch (error) {
+      console.error("خطا در بررسی سؤالات Firestore:", error.message);
+    }
+
     const prompt = `
-      Generate a unique math question in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", topic: "${topic}", difficulty level: ${difficulty} (1 for easy, 2 for medium, 3 for hard). 
-      Provide the question as a clear, concise text string in Persian. Use LaTeX for mathematical expressions within \\( and \\). 
+      Generate a unique math question in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", topic "${topic}", difficulty ${difficulty} (1=easy, 2=medium, 3=hard).
       Return a valid JSON object with:
-      - "question": text with LaTeX for math, in Persian
+      - "question": Persian text with LaTeX for math (use \\( and \\))
       - "correctAnswer": string or number
-      - "options": array of 4 unique strings or numbers (no LaTeX in options)
-      Ensure the correct answer is one of the options, JSON is strictly valid with no unescaped characters or trailing commas, and LaTeX is properly formatted. 
+      - "options": array of 4 unique strings or numbers (no LaTeX)
+      Ensure the correct answer is in options, JSON is valid, and LaTeX is correct.
       Example:
       {
         "question": "حل کنید: \\(2x + 3 = 7\\). مقدار \\(x\\) چیست؟",
@@ -282,8 +585,16 @@ try {
           correctAnswer: String(result.correctAnswer),
           options: result.options.map(String),
           topic,
-          difficulty
+          difficulty,
+          grade,
+          chapterId
         };
+        // ذخیره سؤال در Firestore
+        try {
+          await addDoc(collection(db, "questions"), question);
+        } catch (error) {
+          console.error("خطا در ذخیره سؤال در Firestore:", error.message);
+        }
         if (!questionCache.has(cacheKey)) {
           questionCache.set(cacheKey, []);
         }
@@ -298,7 +609,9 @@ try {
             correctAnswer: "1",
             options: ["0", "1", "2", "3"],
             topic,
-            difficulty
+            difficulty,
+            grade,
+            chapterId
           };
           if (!questionCache.has(cacheKey)) {
             questionCache.set(cacheKey, []);
@@ -315,38 +628,38 @@ try {
     return null;
   }
 
-  async function generateLesson(grade, chapterId, userAnswers, retries = 7, baseDelay = 1000) {
+  async function generateLesson(grade, chapterId, userAnswers, retries = 10, baseDelay = 1000) {
     showLoading(true);
     const incorrectTopics = userAnswers.filter(a => !a.isCorrect).map(a => a.topic).join(", ") || "هیچ اشتباه";
     const prompt = `
-      Generate a detailed lesson in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", focusing on topics where the user answered incorrectly: ${incorrectTopics}.
-      For each incorrect answer in userAnswers: ${JSON.stringify(userAnswers.filter(a => !a.isCorrect))}, provide a step-by-step explanation of the correct solution in Persian.
-      Use LaTeX for mathematical expressions with \\( and \\) for inline math and \\[ and \\] for display math.
-      Format the response as clean HTML with structured sections:
-      - Use <h3> for topic titles
-      - Use <p> for general explanations
-      - Use <ul><li> for step-by-step solutions or examples
-      Ensure all content is in Persian, LaTeX is valid, and no invalid characters interfere with rendering.
-      Include a specific example solving the expression \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\) step-by-step in a dedicated section.
+      Generate a detailed lesson in Persian for grade ${grade}, chapter "${chapters[grade].find(c => c.id == chapterId).name}", focusing on incorrect topics: ${incorrectTopics}.
+      For each incorrect answer in userAnswers: ${JSON.stringify(userAnswers.filter(a => !a.isCorrect).map(a => ({ question: a.question, selected: a.selected, correct: a.correct, topic: a.topic })))},
+      provide a step-by-step solution in Persian.
+      Return clean HTML with:
+      - <h3> for topic titles
+      - <p> for explanations
+      - <ul><li> for steps or examples
+      Use LaTeX with \\( and \\) for inline math, \\[ and \\] for display math.
+      Include a step-by-step solution for \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\) in a separate section.
       Example format:
       <h3>موضوع: [نام موضوع]</h3>
-      <p>توضیح کلی درباره موضوع...</p>
+      <p>[توضیح کلی]</p>
       <h3>بررسی پاسخ‌های نادرست</h3>
       <div>
-        <p><strong>سؤال:</strong> [سؤال کاربر]</p>
+        <p><strong>سؤال:</strong> [سؤال]</p>
         <p><strong>پاسخ شما:</strong> [پاسخ اشتباه]</p>
         <p><strong>پاسخ صحیح:</strong> [پاسخ صحیح]</p>
-        <p><strong>توضیح:</strong> [توضیح کلی]</p>
+        <p><strong>توضیح:</strong> [توضیح]</p>
         <ul>
-          <li>گام اول: [توضیح گام اول]...</li>
-          <li>گام دوم: [توضیح گام دوم]...</li>
+          <li>[گام اول]</li>
+          <li>[گام دوم]</li>
         </ul>
       </div>
       <h3>مثال اضافی</h3>
-      <p>حل گام‌به‌گام عبارت \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\):</p>
+      <p>حل عبارت \\(\\frac{3a^4b^{-2}(2a^2b^3)^2}{6a^3b^5}\\):</p>
       <ul>
-        <li>[گام اول]...</li>
-        <li>[گام دوم]...</li>
+        <li>[گام اول]</li>
+        <li>[گام دوم]</li>
       </ul>
     `;
 
@@ -363,7 +676,10 @@ try {
         if (!lessonContent.trim()) {
           throw new Error("محتوای درسنامه خالی است");
         }
-        document.getElementById("lesson-content").innerHTML = lessonContent;
+        const lessonContentDiv = document.getElementById("lesson-content");
+        if (lessonContentDiv) {
+          lessonContentDiv.innerHTML = lessonContent;
+        }
         setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
         showLoading(false);
         return lessonContent;
@@ -405,7 +721,10 @@ try {
               <li>نتیجه نهایی: \\(2a^5 \cdot \frac{1}{b} = \frac{2a^5}{b}\\)</li>
             </ul>
             <p><strong>پاسخ نهایی: \\(\\frac{2a^5}{b}\\)</strong></p>`;
-          document.getElementById("lesson-content").innerHTML = sanitizeLatex(lessonContent);
+          const lessonContentDiv = document.getElementById("lesson-content");
+          if (lessonContentDiv) {
+            lessonContentDiv.innerHTML = sanitizeLatex(lessonContent);
+          }
           setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
           showError("lesson", "مشکلی در تولید درسنامه پیش آمد. درسنامه پیش‌فرض نمایش داده شد.");
           showLoading(false);
@@ -418,39 +737,35 @@ try {
     return null;
   }
 
-  async function getCoachResponse(question, retries = 7, baseDelay = 1000) {
+  async function getCoachResponse(question, retries = 10, baseDelay = 1000) {
     showLoading(true);
     const isGreeting = ["سلام", "درود", "سلام علیکم"].some(g => question.trim().toLowerCase().includes(g));
-    let prompt;
-    if (isGreeting) {
-      prompt = `
-        You are a friendly math coach for grades 7-9. The user has greeted you with "${question}". 
-        Respond in Persian with a warm, welcoming message in HTML format. Encourage the user to ask a math-related question.
-        Use structured HTML with <h3> for titles and <p> for text.
-        Example format:
+    const prompt = isGreeting
+      ? `
+        You are a friendly math coach for grades 7-9. The user greeted you with "${question}".
+        Respond in Persian with a warm, welcoming HTML message encouraging a math question.
+        Use <h3> for titles, <p> for text.
+        Example:
         <h3>خوش‌آمدگویی</h3>
         <p>سلام! خیلی خوشحال می‌شم که بتونم بهت کمک کنم. اگه سؤالی درباره ریاضی داری، بپرس تا باهم حلش کنیم!</p>
-      `;
-    } else {
-      prompt = `
-        You are a math coach for grades 7-9. Answer the following question in Persian: "${question}". 
-        Provide a clear, educational response in HTML format with structured sections:
-        - Use <h3> for titles
-        - Use <p> for general explanations
-        - Use <ul><li> for step-by-step solutions or examples
-        If the question is a math problem, solve it step-by-step. If it’s a conceptual question, explain the concept clearly with examples.
-        Use LaTeX for mathematical expressions with \\( and \\) for inline math and \\[ and \\] for display math.
-        Ensure the response is entirely in Persian, LaTeX is valid, and no invalid characters interfere with rendering.
-        Example format:
+      `
+      : `
+        You are a math coach for grades 7-9. Answer this question in Persian: "${question}".
+        Return an educational HTML response with:
+        - <h3> for titles
+        - <p> for explanations
+        - <ul><li> for steps or examples
+        For math problems, provide step-by-step solutions. For concepts, explain clearly with examples.
+        Use LaTeX with \\( and \\) for inline math, \\[ and \\] for display math.
+        Example:
         <h3>پاسخ به سؤال</h3>
-        <p>توضیح کلی...</p>
+        <p>[توضیح کلی]</p>
         <ul>
-          <li>گام اول: [توضیح گام اول]...</li>
-          <li>گام دوم: [توضیح گام دوم]...</li>
+          <li>[گام اول]</li>
+          <li>[گام دوم]</li>
         </ul>
-        <p><strong>پاسخ نهایی:</strong> [پاسخ نهایی]</p>
+        <p><strong>پاسخ نهایی:</strong> [پاسخ]</p>
       `;
-    }
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -466,13 +781,15 @@ try {
           throw new Error("پاسخ خالی دریافت شد");
         }
         const chatHistoryDiv = document.getElementById("chat-history");
-        chatHistoryDiv.innerHTML = `
-          <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-            <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "<").replace(/>/g, ">")}</p>
-            <p><strong class="text-green-600">مربی:</strong> ${responseText}</p>
-            <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
-          </div>` + chatHistoryDiv.innerHTML;
-        chatHistoryDiv.scrollTop = 0;
+        if (chatHistoryDiv) {
+          chatHistoryDiv.innerHTML = `
+            <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+              <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+              <p><strong class="text-green-600">مربی:</strong> ${responseText}</p>
+              <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
+            </div>` + chatHistoryDiv.innerHTML;
+          chatHistoryDiv.scrollTop = 0;
+        }
         setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
         showLoading(false);
         return responseText;
@@ -488,16 +805,18 @@ try {
               <p>سلام! خیلی خوشحال می‌شم که بتونم بهت کمک کنم. اگه سؤالی درباره ریاضی داری، بپرس تا باهم حلش کنیم!</p>`
             : `
               <h3>پاسخ به سؤال</h3>
-              <p>سؤال شما: "${question.replace(/</g, "<").replace(/>/g, ">")}"</p>
+              <p>سؤال شما: "${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</p>
               <p>متأسفانه در حال حاضر نمی‌توانیم پاسخ دهیم. لطفاً سؤال خود را واضح‌تر بیان کنید یا بعداً تلاش کنید.</p>`;
           const chatHistoryDiv = document.getElementById("chat-history");
-          chatHistoryDiv.innerHTML = `
-            <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "<").replace(/>/g, ">")}</p>
-              <p><strong class="text-green-600">مربی:</strong> ${fallbackResponse}</p>
-              <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
-            </div>` + chatHistoryDiv.innerHTML;
-          chatHistoryDiv.scrollTop = 0;
+          if (chatHistoryDiv) {
+            chatHistoryDiv.innerHTML = `
+              <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+                <p><strong class="text-blue-600">شما:</strong> ${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                <p><strong class="text-green-600">مربی:</strong> ${fallbackResponse}</p>
+                <p class="text-gray-400 text-sm">${new Date().toLocaleString('fa-IR')}</p>
+              </div>` + chatHistoryDiv.innerHTML;
+            chatHistoryDiv.scrollTop = 0;
+          }
           setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
           return fallbackResponse;
         }
@@ -516,7 +835,10 @@ try {
       if (user) {
         currentUser = user.uid;
         isAdmin = user.email === ADMIN_EMAIL;
-        document.getElementById("logout-btn").classList.remove("hidden");
+        const logoutBtn = document.getElementById("logout-btn");
+        if (logoutBtn) {
+          logoutBtn.classList.remove("hidden");
+        }
         if (!user.emailVerified && !isAdmin) {
           showSection("verify-email-section");
         } else if (isAdmin) {
@@ -538,13 +860,13 @@ try {
     }
   });
 
-  document.getElementById("register-btn").addEventListener("click", async () => {
+  document.getElementById("register-btn")?.addEventListener("click", async () => {
     showLoading(true);
-    const firstName = document.getElementById("first-name").value.trim();
-    const lastName = document.getElementById("last-name").value.trim();
-    const grade = document.getElementById("grade").value;
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+    const firstName = document.getElementById("first-name")?.value.trim();
+    const lastName = document.getElementById("last-name")?.value.trim();
+    const grade = document.getElementById("grade")?.value;
+    const email = document.getElementById("email")?.value.trim();
+    const password = document.getElementById("password")?.value;
 
     if (!firstName || !lastName || !grade || !email || !password) {
       showError("auth", "لطفاً تمام فیلدها را پر کنید!");
@@ -587,10 +909,10 @@ try {
     }
   });
 
-  document.getElementById("login-btn").addEventListener("click", async () => {
+  document.getElementById("login-btn")?.addEventListener("click", async () => {
     showLoading(true);
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
+    const email = document.getElementById("login-email")?.value.trim();
+    const password = document.getElementById("login-password")?.value;
 
     if (!email || !password) {
       showError("auth", "لطفاً ایمیل و رمز عبور را وارد کنید!");
@@ -616,7 +938,7 @@ try {
     }
   });
 
-  document.getElementById("logout-btn").addEventListener("click", async () => {
+  document.getElementById("logout-btn")?.addEventListener("click", async () => {
     showLoading(true);
     try {
       await signOut(auth);
@@ -629,7 +951,7 @@ try {
     }
   });
 
-  document.getElementById("resend-verification-btn").addEventListener("click", async () => {
+  document.getElementById("resend-verification-btn")?.addEventListener("click", async () => {
     showLoading(true);
     if (!auth.currentUser) {
       showError("verify", "لطفاً ابتدا وارد شوید.");
@@ -648,7 +970,7 @@ try {
     }
   });
 
-  document.getElementById("check-verification-btn").addEventListener("click", async () => {
+  document.getElementById("check-verification-btn")?.addEventListener("click", async () => {
     showLoading(true);
     if (!auth.currentUser) {
       showError("verify", "لطفاً ابتدا وارد شوید.");
@@ -671,30 +993,33 @@ try {
     }
   });
 
-  document.getElementById("grade-select").addEventListener("change", () => {
-    const grade = document.getElementById("grade-select").value;
+  document.getElementById("grade-select")?.addEventListener("change", () => {
+    const grade = document.getElementById("grade-select")?.value;
     const chapterSelect = document.getElementById("chapter-select");
-    chapterSelect.innerHTML = "";
-    chapters[grade].forEach(chapter => {
-      const option = document.createElement("option");
-      option.value = chapter.id;
-      option.textContent = chapter.name;
-      chapterSelect.appendChild(option);
-    });
+    if (chapterSelect) {
+      chapterSelect.innerHTML = "";
+      chapters[grade].forEach(chapter => {
+        const option = document.createElement("option");
+        option.value = chapter.id;
+        option.textContent = chapter.name;
+        chapterSelect.appendChild(option);
+      });
+    }
   });
 
   let currentQuestions = [];
   let currentQuestionIndex = 0;
   let userAnswers = [];
   let timerInterval;
-  document.getElementById("start-quiz-btn").addEventListener("click", async () => {
+  document.getElementById("start-quiz-btn")?.addEventListener("click", async () => {
     showLoading(true);
     questionCache.clear();
-    const grade = document.getElementById("grade-select").value;
-    const chapterId = document.getElementById("chapter-select").value;
+    const grade = document.getElementById("grade-select")?.value;
+    const chapterId = document.getElementById("chapter-select")?.value;
+    const questionCount = document.getElementById("question-count")?.value || 3; // انتخاب تعداد سؤالات
     currentQuestions = [];
     try {
-      const questionPromises = Array.from({ length: 3 }, (_, i) => {
+      const questionPromises = Array.from({ length: questionCount }, (_, i) => {
         const difficulty = (i % 3) + 1;
         return generateQuestion(grade, chapterId, difficulty);
       });
@@ -719,28 +1044,38 @@ try {
 
   function showQuestion() {
     const question = currentQuestions[currentQuestionIndex];
-    document.getElementById("question-title").innerHTML = sanitizeLatex(question.text);
+    const questionTitle = document.getElementById("question-title");
+    if (questionTitle) {
+      questionTitle.innerHTML = sanitizeLatex(question.text);
+    }
     const optionsDiv = document.getElementById("options");
-    optionsDiv.innerHTML = "";
-    question.options.forEach(option => {
-      const button = document.createElement("button");
-      button.textContent = String(option);
-      button.classList.add("w-full", "p-2", "border", "rounded", "hover:bg-gray-200", "transition", "btn");
-      button.addEventListener("click", () => {
-        document.querySelectorAll("#options button").forEach(btn => btn.classList.remove("bg-blue-200"));
-        button.classList.add("bg-blue-200");
+    if (optionsDiv) {
+      optionsDiv.innerHTML = "";
+      question.options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = String(option);
+        button.classList.add("w-full", "p-2", "border", "rounded", "hover:bg-gray-200", "transition", "btn");
+        button.addEventListener("click", () => {
+          document.querySelectorAll("#options button").forEach(btn => btn.classList.remove("bg-blue-200"));
+          button.classList.add("bg-blue-200");
+        });
+        optionsDiv.appendChild(button);
       });
-      optionsDiv.appendChild(button);
-    });
+    }
     setTimeout(() => MathJax.typesetPromise().catch(err => console.error("MathJax error:", err)), 100);
 
     const timeLimit = question.difficulty === 1 ? 20 : question.difficulty === 2 ? 30 : 45;
     let timeLeft = timeLimit;
-    document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+    const timerElement = document.getElementById("timer");
+    if (timerElement) {
+      timerElement.textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+    }
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       timeLeft--;
-      document.getElementById("timer").textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+      if (timerElement) {
+        timerElement.textContent = `زمان باقی‌مانده: ${timeLeft} ثانیه`;
+      }
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         submitAnswer(null);
@@ -748,7 +1083,7 @@ try {
     }, 1000);
   }
 
-  document.getElementById("submit-answer-btn").addEventListener("click", () => {
+  document.getElementById("submit-answer-btn")?.addEventListener("click", () => {
     const selectedButton = document.querySelector("#options button.bg-blue-200");
     const selectedAnswer = selectedButton ? selectedButton.textContent : null;
     submitAnswer(selectedAnswer);
@@ -774,13 +1109,13 @@ try {
     }
   }
 
-  document.getElementById("end-quiz-btn").addEventListener("click", endQuiz);
+  document.getElementById("end-quiz-btn")?.addEventListener("click", endQuiz);
 
   async function endQuiz() {
     showLoading(true);
     clearInterval(timerInterval);
-    const grade = document.getElementById("grade-select").value;
-    const chapterId = document.getElementById("chapter-select").value;
+    const grade = document.getElementById("grade-select")?.value;
+    const chapterId = document.getElementById("chapter-select")?.value;
     const correctCount = userAnswers.filter(a => a.isCorrect).length;
     const completionPercentage = userAnswers.length > 0 ? (correctCount / userAnswers.length) * 100 : 0;
 
@@ -812,7 +1147,7 @@ try {
   let progressChart = null;
   async function showProgress() {
     showLoading(true);
-    const grade = document.getElementById("grade-select").value;
+    const grade = document.getElementById("grade-select")?.value;
     try {
       if (!currentUser) throw new Error("کاربر وارد نشده است.");
       const userDoc = await getDoc(doc(db, "users", currentUser));
@@ -824,7 +1159,8 @@ try {
         throw new Error("داده‌های نمودار نامعتبر هستند");
       }
 
-      const ctx = document.getElementById("progress-chart").getContext("2d");
+      const ctx = document.getElementById("progress-chart")?.getContext("2d");
+      if (!ctx) throw new Error("عنصر نمودار یافت نشد");
       if (progressChart) progressChart.destroy();
       progressChart = new Chart(ctx, {
         type: "bar",
@@ -859,10 +1195,10 @@ try {
     }
   }
 
-  document.getElementById("send-chat-btn").addEventListener("click", async () => {
+  document.getElementById("send-chat-btn")?.addEventListener("click", async () => {
     showLoading(true);
     const chatInput = document.getElementById("chat-input");
-    const question = chatInput.value.trim();
+    const question = chatInput?.value.trim();
     if (!question) {
       showError("chat", "لطفاً یک سؤال وارد کنید!");
       showLoading(false);
@@ -897,6 +1233,7 @@ try {
   async function updateChatHistory() {
     showLoading(true);
     const chatHistoryDiv = document.getElementById("chat-history");
+    if (!chatHistoryDiv) return;
     chatHistoryDiv.innerHTML = "";
     try {
       if (!currentUser) {
@@ -910,7 +1247,7 @@ try {
         const chats = [];
         snapshot.forEach(doc => chats.push(doc.data()));
         chats.reverse().forEach(chat => {
-          const question = chat.question ? chat.question.replace(/</g, "<").replace(/>/g, ">") : "سؤال نامشخص";
+          const question = chat.question ? chat.question.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "سؤال نامشخص";
           const response = chat.response ? chat.response : "<p>پاسخ دریافت نشد.</p>";
           chatHistoryDiv.innerHTML += `
             <div class="mb-4 p-3 bg-blue-50 rounded-lg shadow-sm">
@@ -948,6 +1285,7 @@ try {
         return;
       }
       const userListDiv = document.getElementById("user-list");
+      if (!userListDiv) return;
       userListDiv.innerHTML = "";
       const usersSnapshot = await getDocs(collection(db, "users"));
       if (usersSnapshot.empty) {
@@ -985,7 +1323,8 @@ try {
         throw new Error("داده‌های نمودار نامعتبر هستند");
       }
 
-      const ctx = document.getElementById("admin-progress-chart").getContext("2d");
+      const ctx = document.getElementById("admin-progress-chart")?.getContext("2d");
+      if (!ctx) throw new Error("عنصر نمودار یافت نشد");
       if (adminProgressChart) adminProgressChart.destroy();
       adminProgressChart = new Chart(ctx, {
         type: "bar",
@@ -1011,17 +1350,23 @@ try {
           }
         }
       });
-      document.getElementById("admin-progress-chart").classList.remove("hidden");
+      const chartElement = document.getElementById("admin-progress-chart");
+      if (chartElement) {
+        chartElement.classList.remove("hidden");
+      }
     } catch (error) {
       console.error("خطا در نمایش پیشرفت ادمین:", error.message);
       showError("admin", "مشکلی در نمایش پیشرفت پیش آمد.");
-      document.getElementById("admin-progress-chart").classList.add("hidden");
+      const chartElement = document.getElementById("admin-progress-chart");
+      if (chartElement) {
+        chartElement.classList.add("hidden");
+      }
     }
   }
 
-  document.getElementById("admin-search-btn").addEventListener("click", async () => {
+  document.getElementById("admin-search-btn")?.addEventListener("click", async () => {
     showLoading(true);
-    const searchEmail = document.getElementById("admin-search-user").value.trim();
+    const searchEmail = document.getElementById("admin-search-user")?.value.trim();
     if (!searchEmail) {
       showError("admin", "لطفاً ایمیل کاربر را وارد کنید!");
       showLoading(false);
@@ -1038,6 +1383,7 @@ try {
       let found = false;
       let userId = null;
       const userDetailsDiv = document.getElementById("admin-user-details");
+      if (!userDetailsDiv) return;
       userDetailsDiv.innerHTML = "";
       for (const doc of usersSnapshot.docs) {
         const user = doc.data();
@@ -1064,11 +1410,14 @@ try {
               <h4 class="font-semibold mt-4">تاریخچه آزمون‌ها:</h4>
               <div id="admin-quiz-history" class="bg-gray-100 p-2 rounded"></div>
             </div>`;
-          document.getElementById("admin-grade-select").classList.remove("hidden");
-          document.getElementById("admin-grade-select").addEventListener("change", () => {
-            const selectedGrade = document.getElementById("admin-grade-select").value;
-            showAdminProgress(user, selectedGrade);
-          });
+          const gradeSelect = document.getElementById("admin-grade-select");
+          if (gradeSelect) {
+            gradeSelect.classList.remove("hidden");
+            gradeSelect.addEventListener("change", () => {
+              const selectedGrade = gradeSelect.value;
+              showAdminProgress(user, selectedGrade);
+            });
+          }
           await showAdminProgress(user, "7");
 
           const quizHistoryDiv = userDetailsDiv.querySelector("#admin-quiz-history");
@@ -1118,7 +1467,7 @@ try {
     }
   });
 
-  document.getElementById("admin-logout-btn").addEventListener("click", async () => {
+  document.getElementById("admin-logout-btn")?.addEventListener("click", async () => {
     showLoading(true);
     try {
       await signOut(auth);
@@ -1131,20 +1480,20 @@ try {
     }
   });
 
-  document.getElementById("back-to-auth-btn").addEventListener("click", () => showSection("auth-section"));
-  document.getElementById("back-to-auth-from-grade-btn").addEventListener("click", () => showSection("auth-section"));
-  document.getElementById("back-to-grade-btn").addEventListener("click", () => showSection("grade-section"));
-  document.getElementById("back-to-grade-from-progress-btn").addEventListener("click", () => showSection("grade-section"));
-  document.getElementById("back-to-grade-from-chat-btn").addEventListener("click", () => showSection("grade-section"));
-  document.getElementById("back-to-grade-from-quiz").addEventListener("click", () => showSection("grade-section"));
-  document.getElementById("back-to-auth-from-admin-btn").addEventListener("click", () => showSection("auth-section"));
-  document.getElementById("view-progress-btn").addEventListener("click", showProgress);
-  document.getElementById("view-chat-btn").addEventListener("click", async () => {
+  document.getElementById("back-to-auth-btn")?.addEventListener("click", () => showSection("auth-section"));
+  document.getElementById("back-to-auth-from-grade-btn")?.addEventListener("click", () => showSection("auth-section"));
+  document.getElementById("back-to-grade-btn")?.addEventListener("click", () => showSection("grade-section"));
+  document.getElementById("back-to-grade-from-progress-btn")?.addEventListener("click", () => showSection("grade-section"));
+  document.getElementById("back-to-grade-from-chat-btn")?.addEventListener("click", () => showSection("grade-section"));
+  document.getElementById("back-to-grade-from-quiz")?.addEventListener("click", () => showSection("grade-section"));
+  document.getElementById("back-to-auth-from-admin-btn")?.addEventListener("click", () => showSection("auth-section"));
+  document.getElementById("view-progress-btn")?.addEventListener("click", showProgress);
+  document.getElementById("view-chat-btn")?.addEventListener("click", async () => {
     await updateChatHistory();
     showSection("chat-section");
   });
 
-  document.getElementById("grade-select").dispatchEvent(new Event("change"));
+  document.getElementById("grade-select")?.dispatchEvent(new Event("change"));
 } catch (error) {
   console.error("خطا در راه‌اندازی Firebase:", error.message);
   showError("auth", "مشکلی در راه‌اندازی برنامه پیش آمد.");
